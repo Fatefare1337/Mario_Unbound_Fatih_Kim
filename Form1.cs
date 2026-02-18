@@ -20,7 +20,7 @@ namespace Mario_Unbound
 
             if (angemeldet == false)
             {
-               Label newLALA = new Label();
+               
                 Label lbl_Benutzername = new Label();
                 lbl_Benutzername.Text = "Benutzername:";
 
