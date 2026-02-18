@@ -2,6 +2,12 @@ namespace Mario_Unbound
 {
     public partial class Form1 : Form
     {
+
+        /*
+         * Kim stunden: ca. 2 Stunden
+         *Fatih stunden: ca. 
+         */
+
         bool angemeldet = false;
         ComboBox cmb_Avatarbild;
         public Form1()
@@ -20,7 +26,7 @@ namespace Mario_Unbound
 
             if (angemeldet == false)
             {
-                //LALAL einfügen
+
                 Label label = new Label();
                 Label lbl_Benutzername = new Label();
                 lbl_Benutzername.Text = "Benutzername:";
@@ -31,7 +37,7 @@ namespace Mario_Unbound
                 lbl_Benutzername.Left = 20;
 
                 TextBox txb_Benutzername = new TextBox();
-                
+
                 Controls.Add(txb_Benutzername);
                 txb_Benutzername.Size = new Size(140, 20);
                 txb_Benutzername.Top = 40;
@@ -70,10 +76,10 @@ namespace Mario_Unbound
                 txb_Passwort.Size = new Size(140, 20);
                 txb_Passwort.Top = 120;
                 txb_Passwort.Left = 140;
-               
+
                 //- - - - - - - - - - - - - - - - - - - - - -  - - - - - - - -  - - - - - - -  - - - - - - - - - - -
 
-                 cmb_Avatarbild = new ComboBox();
+                cmb_Avatarbild = new ComboBox();
                 Controls.Add(cmb_Avatarbild);
 
                 cmb_Avatarbild.Items.Add("Avatar Frau");
@@ -82,9 +88,9 @@ namespace Mario_Unbound
 
 
                 cmb_Avatarbild.SelectedIndexChanged += Cmb_Avatarbild_SelectedIndexChanged;
-                //PROBLEM: zeigt das Bild noch nicht an!
 
-                    
+
+
 
             }
             else
@@ -97,47 +103,58 @@ namespace Mario_Unbound
 
         private void Cmb_Avatarbild_SelectedIndexChanged(object? sender, EventArgs e)
         {
-            if(cmb_Avatarbild.SelectedIndex == 0)
-                    {
+            if (cmb_Avatarbild.SelectedIndex == 0)
+            {
                 PictureBox pb_Frau = new PictureBox();
-                pb_Frau.Image = Image.FromFile("Avatar_Frau.jpg");
+                pb_Frau.Image = Image.FromFile("Frau_Avatar.png");
                 Controls.Add(pb_Frau);
 
-                pb_Frau.SizeMode = PictureBoxSizeMode.StretchImage;
-                pb_Frau.Top = 160;
-                pb_Frau.Left = 50;
+                pb_Frau.Size = new Size(200, 200);
+                pb_Frau.SizeMode = PictureBoxSizeMode.Zoom;
+                pb_Frau.Top = 30;
+                pb_Frau.Left = 500;
                 pb_Frau.Show();
 
 
             }
 
-             else if (cmb_Avatarbild.SelectedItem == "Avatar Mann")
+            else if (cmb_Avatarbild.SelectedIndex == 1)
             {
                 PictureBox pb_Mann = new PictureBox();
-                pb_Mann.Image = Image.FromFile("user Bild.png");
+                pb_Mann.Image = Image.FromFile("Mann_Avatar.png");
                 Controls.Add(pb_Mann);
 
-                pb_Mann.SizeMode = PictureBoxSizeMode.StretchImage;
-                pb_Mann.Top = 160;
-                pb_Mann.Left = 50;
+                pb_Mann.Size = new Size(200, 200);
+                pb_Mann.SizeMode = PictureBoxSizeMode.Zoom;
+                pb_Mann.Top = 30;
+                pb_Mann.Left = 500;
                 pb_Mann.Show();
 
             }
 
-            //TODO: else zweig einrichten
+            //TODO:
             //schauen, dass man wenn man eins angeklickt hat, es immer noch ändern kann
 
-            //else
-            //{
-            //    PictureBox pb_Dino = new PictureBox();
-            //    pb_Dino.Image = Image.FromFile("Avatar Frau.jpg");
-            //    Controls.Add(pb_Dino);
+            else
+            {
+                PictureBox pb_Dino = new PictureBox();
+                pb_Dino.Image = Image.FromFile("Dino_Avatar.png");
+                Controls.Add(pb_Dino);
 
-            //    pb_Dino.SizeMode = PictureBoxSizeMode.StretchImage;
-            //    pb_Dino.Top = 160;
-            //    pb_Dino.Left = 50;
-            //    pb_Dino.Show();
-            //}
+                pb_Dino.SizeMode = PictureBoxSizeMode.Zoom;
+                pb_Dino.Size = new Size(200, 200);
+                pb_Dino.Top = 30;
+                pb_Dino.Left = 500;
+                pb_Dino.Show();
+            }
+        }
+
+        private void Btn_Team_Click(object sender, EventArgs e)
+        {
+            this.Controls.Clear();
+
+            
+
         }
     }
 }

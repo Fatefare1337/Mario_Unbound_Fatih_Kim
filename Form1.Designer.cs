@@ -64,6 +64,7 @@
             Btn_Team.TabIndex = 9;
             Btn_Team.Text = "Team";
             Btn_Team.UseVisualStyleBackColor = true;
+            Btn_Team.Click += Btn_Team_Click;
             // 
             // Btn_Profil
             // 
