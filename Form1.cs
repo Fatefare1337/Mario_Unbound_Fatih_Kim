@@ -2,39 +2,102 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace Mario_Unbound
 {
+    /*
+    * Kim stunden: ca. 3 Stunden
+    *Fatih stunden: ca. 1 Stunde
+     */
     public partial class Form1 : Form
     {
-
-        /*
-         * Kim stunden: ca. 2 Stunden
-         *Fatih stunden: ca. 1 Stunde
-         */
-
         bool angemeldet = false;
         ComboBox cmb_Avatarbild;
         PictureBox picture;
+        PictureBox Logo;
+        Button Btn_Start; Button Btn_Level; Button Btn_Team; Button Btn_Profil; Button Btn_Schlieﬂen;
+
         public Form1()
         {
-
             InitializeComponent();
             ClientSize = new Size(800, 500);
 
+            Startseite();
         }
 
-        private void Btn_Schlieﬂen_Click(object sender, EventArgs e)
+        #region OhneGame
+        private void Registrieren_Click(object? sender, EventArgs e)
+        {
+            //ToDO:
+            //Abspeichern der Benutzerdaten in Textdatei. 
+            //¸bertragen der Benutzerdaten in Profilseite.
+            angemeldet = true;
+        } //in bearbeitung
+
+        private void Cmb_Avatarbild_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            
+            if (cmb_Avatarbild.SelectedIndex == 0)
+            {
+                Controls.Remove(picture);
+                picture = new PictureBox();
+                picture.Image = Image.FromFile("Frau_Avatar.png");
+                Controls.Add(picture);
+
+
+                picture.Size = new Size(200, 200);
+                picture.SizeMode = PictureBoxSizeMode.Zoom;
+                picture.Top = 100;
+                picture.Left = 500;
+                picture.Show();
+
+
+            }
+
+            else if (cmb_Avatarbild.SelectedIndex == 1)
+            {
+                Controls.Remove(picture);
+                picture = new PictureBox();
+                picture.Image = Image.FromFile("Mann_Avatar.png");
+                Controls.Add(picture);
+
+                picture.Size = new Size(200, 200);
+                picture.SizeMode = PictureBoxSizeMode.Zoom;
+                picture.Top = 100;
+                picture.Left = 500;
+                picture.Show();
+
+            }
+
+            else
+            {
+                Controls.Remove(picture);
+                picture = new PictureBox();
+                picture.Image = Image.FromFile("Dino_Avatar.png");
+                Controls.Add(picture);
+
+                picture.SizeMode = PictureBoxSizeMode.Zoom;
+                picture.Size = new Size(200, 200);
+                picture.Top = 100;
+                picture.Left = 500;
+                picture.Show();
+            }
+        }  
+
+        protected void Schlieﬂen()
         {
             this.Close();
-        } //Fertig
-
-        private void Btn_Profil_Click(object sender, EventArgs e)
+        } 
+              
+        protected void Profilseite()
         {
             this.Controls.Clear();
             ClientSize = new Size(800, 500);
 
+            //Zur¸ck Pfeil hinzuf¸gen
+
+
             if (angemeldet == false)
             {
 
-                Label label = new Label();
+                
                 Label lbl_Benutzername = new Label();
                 lbl_Benutzername.Text = "Benutzername:";
 
@@ -76,7 +139,7 @@ namespace Mario_Unbound
                 lbl_Passwort.AutoSize = true;
                 lbl_Passwort.Top = 180;
                 lbl_Passwort.Left = 20;
-                
+
 
                 TextBox txb_Passwort = new TextBox();
 
@@ -101,19 +164,19 @@ namespace Mario_Unbound
 
                 cmb_Avatarbild.SelectedIndex = 2;
 
-            //- - - - -  - - -  - - - - - - - - -  - - - - -  - - -   - - - - - - - - - - - - - - - - - - - - - - - - - - -  - -- - - -
-            
-                Button Registrieren = new Button();
+                //- - - - -  - - -  - - - - - - - - -  - - - - -  - - -   - - - - - - - - - - - - - - - - - - - - - - - - - - -  - -- - - -
 
-                Registrieren.BackColor = Color.White;
-                Registrieren.ForeColor = Color.Black;
-                Registrieren.Size = new Size(100, 30);
-                Registrieren.Text = "Registrieren";
-                Registrieren.Top = 400;
-                Registrieren.Left = (ClientSize.Width - Registrieren.Width) / 2;
-                Controls.Add(Registrieren);
+                Button Btn_Registrieren = new Button();
 
-                Registrieren.Click += Registrieren_Click;
+                Btn_Registrieren.BackColor = Color.White;
+                Btn_Registrieren.ForeColor = Color.Black;
+                Btn_Registrieren.Size = new Size(100, 30);
+                Btn_Registrieren.Text = "Registrieren";
+                Btn_Registrieren.Top = 400;
+                Btn_Registrieren.Left = (ClientSize.Width - Btn_Registrieren.Width) / 2;
+                Controls.Add(Btn_Registrieren);
+
+                Btn_Registrieren.Click += Registrieren_Click;
             }
             else
             {
@@ -123,76 +186,189 @@ namespace Mario_Unbound
 
         } //in bearbeitung
 
-        private void Registrieren_Click(object? sender, EventArgs e)
+        protected void Startseite()
         {
-            //ins Textformular 
-        } //in bearbeitung
 
-        private void Cmb_Avatarbild_SelectedIndexChanged(object? sender, EventArgs e)
-        {
-            
-            if (cmb_Avatarbild.SelectedIndex == 0)
-            {
-                Controls.Remove(picture);
-                picture = new PictureBox();
-                picture.Image = Image.FromFile("Frau_Avatar.png");
-                Controls.Add(picture);
+            Controls.Clear();
+
+            Logo = new PictureBox();
+            Controls.Add(Logo);
+            Logo.Image = Image.FromFile("Mario Logo.png");
+            Logo.Size = new Size(200, 200);
+            Logo.SizeMode = PictureBoxSizeMode.Zoom;
 
 
-                picture.Size = new Size(200, 200);
-                picture.SizeMode = PictureBoxSizeMode.Zoom;
-                picture.Top = 100;
-                picture.Left = 500;
-                picture.Show();
+            Btn_Start = new Button();
+            Controls.Add(Btn_Start);
 
+            Btn_Start.BackColor = Color.White;
+            Btn_Start.ForeColor = Color.Black;
+            Btn_Start.Size = new Size(100, 30);
+            Btn_Start.Text = "Start";
+            Btn_Start.Top = 220;
+            Btn_Start.Left = 30;
+            Controls.Add(Btn_Start);
 
-            }
+            Btn_Start.Click += Btn_Start_Click;
 
-            else if (cmb_Avatarbild.SelectedIndex == 1)
-            {
-                Controls.Remove(picture);
-                picture = new PictureBox();
-                picture.Image = Image.FromFile("Mann_Avatar.png");
-                Controls.Add(picture);
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - - - - - - - -  - - - - - -
 
-                picture.Size = new Size(200, 200);
-                picture.SizeMode = PictureBoxSizeMode.Zoom;
-                picture.Top = 100;
-                picture.Left = 500;
-                picture.Show();
+            Btn_Level = new Button();
+            Controls.Add(Btn_Level);
 
-            }
+            Btn_Level.BackColor = Color.White;
+            Btn_Level.ForeColor = Color.Black;
+            Btn_Level.Size = new Size(100, 30);
+            Btn_Level.Text = "Level";
+            Btn_Level.Top = 260;
+            Btn_Level.Left = 30;
+            Controls.Add(Btn_Level);
 
-            //TODO:
-            //abspeichern der ergebnisse wenn speichern / registieren geklickt wird.
+            Btn_Level.Click += Btn_Level_Click;
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-            else
-            {
-                Controls.Remove(picture);
-                picture = new PictureBox();
-                picture.Image = Image.FromFile("Dino_Avatar.png");
-                Controls.Add(picture);
+            Btn_Team = new Button();
+            Controls.Add(Btn_Team);
 
-                picture.SizeMode = PictureBoxSizeMode.Zoom;
-                picture.Size = new Size(200, 200);
-                picture.Top = 100;
-                picture.Left = 500;
-                picture.Show();
-            }
-        } //fertig
+            Btn_Team.BackColor = Color.White;
+            Btn_Team.ForeColor = Color.Black;
+            Btn_Team.Size = new Size(100, 30);
+            Btn_Team.Text = "Team";
+            Btn_Team.Top = 300;
+            Btn_Team.Left = 30;
+            Controls.Add(Btn_Team);
 
-        private void Btn_Team_Click(object sender, EventArgs e)
-        {
-            this.Controls.Clear();
+            Btn_Team.Click += Btn_Team_Click;
 
-            
+            //- - - - - - - - - - - - - - - -  - - - - - - - - - - - -  -- - -  - - - - - -  - - - - - -  - - - 
+
+            Btn_Profil = new Button();
+            Controls.Add(Btn_Profil);
+
+            Btn_Profil.BackColor = Color.White;
+            Btn_Profil.ForeColor = Color.Black;
+            Btn_Profil.Size = new Size(100, 30);
+            Btn_Profil.Text = "Profil";
+            Btn_Profil.Top = 340;
+            Btn_Profil.Left = 30;
+            Controls.Add(Btn_Profil);
+
+            Btn_Profil.Click += Btn_Profil_Click1;
+
+            //- - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+            Btn_Schlieﬂen = new Button();
+            Controls.Add(Btn_Schlieﬂen);
+
+            Btn_Schlieﬂen.BackColor = Color.White;
+            Btn_Schlieﬂen.ForeColor = Color.Black;
+            Btn_Schlieﬂen.Size = new Size(100, 30);
+            Btn_Schlieﬂen.Text = "Schlieﬂen";
+            Btn_Schlieﬂen.Top = 380;
+            Btn_Schlieﬂen.Left = 30;
+            Controls.Add(Btn_Schlieﬂen);
+
+            Btn_Schlieﬂen.Click += Btn_Schlieﬂen_Click1;
 
         }
 
+        protected void Teamseite()
+        {
+            Controls.Clear();
+
+            //TODO:
+            //Bilder /Character der Teammitglieder hinzuf¸gen.
+            //Zur¸ck Pfeil hinzuf¸gen
+
+            Label NameKim = new Label();
+            NameKim.Text = "Kimberly Heinzl";
+
+            Controls.Add(NameKim);
+            NameKim.AutoSize = true;
+            NameKim.Top = 300;
+            NameKim.Left = 100;
+
+            //- - - - - -- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - 
+
+            Label NameFatih = new Label();
+            NameFatih.Text = "Fatih (Nachname)";
+
+            Controls.Add(NameFatih);
+            NameFatih.AutoSize = true;
+            NameFatih.Top = 300;
+            NameFatih.Left = 500;
+
+            //- - - - - -- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - 
+
+            Label Stundenanzahl = new Label();
+            Stundenanzahl.Text = "Gearbeitete Stunden: ";
+
+            Controls.Add(Stundenanzahl);
+            Stundenanzahl.AutoSize = true;
+            Stundenanzahl.Top = 330;
+            Stundenanzahl.Left = 500;
+
+            //- - - - - -- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - 
+
+            Label StundenanzahlK = new Label();
+            StundenanzahlK.Text = "Gearbeitete Stunden: ";
+
+            Controls.Add(StundenanzahlK);
+            StundenanzahlK.AutoSize = true;
+            StundenanzahlK.Top = 330;
+            StundenanzahlK.Left = 100;
+
+            //- - - - - -- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - 
+
+            Label Bereich = new Label();
+            Bereich.Text = "Gearbeitete Stunden: ";
+
+            Controls.Add(Bereich);
+            Bereich.AutoSize = true;
+            Bereich.Top = 360;
+            Bereich.Left = 500;
+
+            //- - - - - -- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - 
+
+            Label BereichK = new Label();
+            BereichK.Text = "Gearbeitete Stunden: ";
+
+            Controls.Add(BereichK);
+            BereichK.AutoSize = true;
+            BereichK.Top = 360;
+            BereichK.Left = 100;
+        } //in bearbeitung
+
+        private void Btn_Schlieﬂen_Click1(object? sender, EventArgs e)
+        {
+            Schlieﬂen();
+        }
+
+        private void Btn_Profil_Click1(object? sender, EventArgs e)
+        {
+            Profilseite();
+        }
+
+        private void Btn_Team_Click(object? sender, EventArgs e) 
+        {
+            Teamseite();
+        }
+
+        private void Btn_Level_Click(object? sender, EventArgs e) //in bearbeitung
+        {
+            
+        }
+
+        private void Btn_Start_Click(object? sender, EventArgs e) 
+        {
+            this.Controls.Clear();
+        } //In bearbeitung
+
+        #endregion 
 
         //TODO: Profil
         //Zur¸ck Button
-        //Passwort vielleich verschleiern
+
     }
 }
         
