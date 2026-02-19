@@ -1,3 +1,5 @@
+using System.Security.Cryptography.X509Certificates;
+
 namespace Mario_Unbound
 {
     public partial class Form1 : Form
@@ -10,19 +12,26 @@ namespace Mario_Unbound
 
         bool angemeldet = false;
         ComboBox cmb_Avatarbild;
+        PictureBox picture;
         public Form1()
         {
+
             InitializeComponent();
+            ClientSize = new Size(800, 500);
+
+            
+
         }
 
         private void Btn_Schließen_Click(object sender, EventArgs e)
         {
             this.Close();
-        }
+        } //Fertig
 
         private void Btn_Profil_Click(object sender, EventArgs e)
         {
             this.Controls.Clear();
+            ClientSize = new Size(800, 500);
 
             if (angemeldet == false)
             {
@@ -33,14 +42,14 @@ namespace Mario_Unbound
 
                 Controls.Add(lbl_Benutzername);
                 lbl_Benutzername.AutoSize = true;
-                lbl_Benutzername.Top = 40;
+                lbl_Benutzername.Top = 60;
                 lbl_Benutzername.Left = 20;
 
                 TextBox txb_Benutzername = new TextBox();
 
                 Controls.Add(txb_Benutzername);
                 txb_Benutzername.Size = new Size(140, 20);
-                txb_Benutzername.Top = 40;
+                txb_Benutzername.Top = 60;
                 txb_Benutzername.Left = 140;
 
                 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - - - - -
@@ -50,14 +59,14 @@ namespace Mario_Unbound
 
                 Controls.Add(lbl_EMail);
                 lbl_EMail.AutoSize = true;
-                lbl_EMail.Top = 80;
+                lbl_EMail.Top = 120;
                 lbl_EMail.Left = 20;
 
                 TextBox txb_Email = new TextBox();
 
                 Controls.Add(txb_Email);
                 txb_Email.Size = new Size(140, 20);
-                txb_Email.Top = 80;
+                txb_Email.Top = 120;
                 txb_Email.Left = 140;
 
                 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -67,14 +76,14 @@ namespace Mario_Unbound
 
                 Controls.Add(lbl_Passwort);
                 lbl_Passwort.AutoSize = true;
-                lbl_Passwort.Top = 120;
+                lbl_Passwort.Top = 180;
                 lbl_Passwort.Left = 20;
 
                 TextBox txb_Passwort = new TextBox();
 
                 Controls.Add(txb_Passwort);
                 txb_Passwort.Size = new Size(140, 20);
-                txb_Passwort.Top = 120;
+                txb_Passwort.Top = 180;
                 txb_Passwort.Left = 140;
 
                 //- - - - - - - - - - - - - - - - - - - - - -  - - - - - - - -  - - - - - - -  - - - - - - - - - - -
@@ -90,9 +99,21 @@ namespace Mario_Unbound
                 cmb_Avatarbild.Left = 500;
                 cmb_Avatarbild.SelectedIndexChanged += Cmb_Avatarbild_SelectedIndexChanged;
 
+                cmb_Avatarbild.SelectedIndex = 2;
 
+            //- - - - -  - - -  - - - - - - - - -  - - - - -  - - -   - - - - - - - - - - - - - - - - - - - - - - - - - - -  - -- - - -
+            
+                Button Registrieren = new Button();
 
+                Registrieren.BackColor = Color.White;
+                Registrieren.ForeColor = Color.Black;
+                Registrieren.Size = new Size(100, 30);
+                Registrieren.Text = "Registrieren";
+                Registrieren.Top = 400;
+                Registrieren.Left = (ClientSize.Width - Registrieren.Width) / 2;
+                Controls.Add(Registrieren);
 
+                Registrieren.Click += Registrieren_Click;
             }
             else
             {
@@ -100,57 +121,65 @@ namespace Mario_Unbound
                 //Checken mit textdokument
             }
 
-        }
+        } //in bearbeitung
+
+        private void Registrieren_Click(object? sender, EventArgs e)
+        {
+            //ins Textformular 
+        } //in bearbeitung
 
         private void Cmb_Avatarbild_SelectedIndexChanged(object? sender, EventArgs e)
         {
+            
             if (cmb_Avatarbild.SelectedIndex == 0)
             {
-                
-                PictureBox pb_Frau = new PictureBox();
-                pb_Frau.Image = Image.FromFile("Frau_Avatar.png");
-                Controls.Add(pb_Frau);
+                Controls.Remove(picture);
+                picture = new PictureBox();
+                picture.Image = Image.FromFile("Frau_Avatar.png");
+                Controls.Add(picture);
 
 
-                pb_Frau.Size = new Size(200, 200);
-                pb_Frau.SizeMode = PictureBoxSizeMode.Zoom;
-                pb_Frau.Top = 50;
-                pb_Frau.Left = 500;
-                pb_Frau.Show();
+                picture.Size = new Size(200, 200);
+                picture.SizeMode = PictureBoxSizeMode.Zoom;
+                picture.Top = 100;
+                picture.Left = 500;
+                picture.Show();
 
 
             }
 
             else if (cmb_Avatarbild.SelectedIndex == 1)
             {
-                PictureBox pb_Mann = new PictureBox();
-                pb_Mann.Image = Image.FromFile("Mann_Avatar.png");
-                Controls.Add(pb_Mann);
+                Controls.Remove(picture);
+                picture = new PictureBox();
+                picture.Image = Image.FromFile("Mann_Avatar.png");
+                Controls.Add(picture);
 
-                pb_Mann.Size = new Size(200, 200);
-                pb_Mann.SizeMode = PictureBoxSizeMode.Zoom;
-                pb_Mann.Top = 30;
-                pb_Mann.Left = 500;
-                pb_Mann.Show();
+                picture.Size = new Size(200, 200);
+                picture.SizeMode = PictureBoxSizeMode.Zoom;
+                picture.Top = 100;
+                picture.Left = 500;
+                picture.Show();
 
             }
 
             //TODO:
-            //schauen, dass man wenn man eins angeklickt hat, es immer noch ändern kann
+            //abspeichern der ergebnisse wenn speichern / registieren geklickt wird.
 
             else
             {
-                PictureBox pb_Dino = new PictureBox();
-                pb_Dino.Image = Image.FromFile("Dino_Avatar.png");
-                Controls.Add(pb_Dino);
+                Controls.Remove(picture);
+                picture = new PictureBox();
+                picture.Image = Image.FromFile("Dino_Avatar.png");
+                Controls.Add(picture);
 
-                pb_Dino.SizeMode = PictureBoxSizeMode.Zoom;
-                pb_Dino.Size = new Size(200, 200);
-                pb_Dino.Top = 30;
-                pb_Dino.Left = 500;
-                pb_Dino.Show();
+                picture.SizeMode = PictureBoxSizeMode.Zoom;
+                picture.Size = new Size(200, 200);
+                picture.Top = 100;
+                picture.Left = 500;
+                picture.Show();
             }
-        }
+        } //fertig
 
         private void Btn_Team_Click(object sender, EventArgs e)
         {
@@ -159,6 +188,11 @@ namespace Mario_Unbound
             
 
         }
+
+
+        //TODO: Profil
+        //Zurück Button
+        //Passwort vielleich verschleiern
     }
 }
         
