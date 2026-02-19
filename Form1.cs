@@ -28,7 +28,9 @@ namespace Mario_Unbound
             //ToDO:
             //Abspeichern der Benutzerdaten in Textdatei. 
             //übertragen der Benutzerdaten in Profilseite.
-            angemeldet = true;
+            //Checken ob Benutzername bereits existiert.
+            //Registieren und anmelden unterscheiden
+            angemeldet = true ;
         } //in bearbeitung
 
         private void Cmb_Avatarbild_SelectedIndexChanged(object? sender, EventArgs e)
@@ -270,6 +272,19 @@ namespace Mario_Unbound
 
             Btn_Schließen.Click += Btn_Schließen_Click1;
 
+            //- - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+            if (angemeldet == false)
+            {
+                Label lbl_Warnung = new Label();
+                lbl_Warnung.Text = "Bitte melden Sie sich an, um Ihren Stand zu speichern!";
+                Controls.Add(lbl_Warnung);
+                lbl_Warnung.AutoSize = true;
+                lbl_Warnung.Top = 30;
+                lbl_Warnung.Left = 400;
+                lbl_Warnung.ForeColor = Color.Red;
+                lbl_Warnung.Font = new Font(lbl_Warnung.Font, FontStyle.Bold);
+            }
         }
 
         protected void Teamseite()
