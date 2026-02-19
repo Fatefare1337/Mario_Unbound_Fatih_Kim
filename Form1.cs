@@ -78,6 +78,7 @@ namespace Mario_Unbound
                 lbl_Passwort.AutoSize = true;
                 lbl_Passwort.Top = 180;
                 lbl_Passwort.Left = 20;
+                
 
                 TextBox txb_Passwort = new TextBox();
 
@@ -85,6 +86,7 @@ namespace Mario_Unbound
                 txb_Passwort.Size = new Size(140, 20);
                 txb_Passwort.Top = 180;
                 txb_Passwort.Left = 140;
+                txb_Passwort.UseSystemPasswordChar = true;
 
                 //- - - - - - - - - - - - - - - - - - - - - -  - - - - - - - -  - - - - - - -  - - - - - - - - - - -
 
