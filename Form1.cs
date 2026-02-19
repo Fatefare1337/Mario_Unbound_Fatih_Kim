@@ -86,7 +86,8 @@ namespace Mario_Unbound
                 cmb_Avatarbild.Items.Add("Avatar Mann");
                 cmb_Avatarbild.Items.Add("Avatar Dino");
 
-
+                cmb_Avatarbild.Top = 30;
+                cmb_Avatarbild.Left = 500;
                 cmb_Avatarbild.SelectedIndexChanged += Cmb_Avatarbild_SelectedIndexChanged;
 
 
@@ -105,13 +106,15 @@ namespace Mario_Unbound
         {
             if (cmb_Avatarbild.SelectedIndex == 0)
             {
+                
                 PictureBox pb_Frau = new PictureBox();
                 pb_Frau.Image = Image.FromFile("Frau_Avatar.png");
                 Controls.Add(pb_Frau);
 
+
                 pb_Frau.Size = new Size(200, 200);
                 pb_Frau.SizeMode = PictureBoxSizeMode.Zoom;
-                pb_Frau.Top = 30;
+                pb_Frau.Top = 50;
                 pb_Frau.Left = 500;
                 pb_Frau.Show();
 
