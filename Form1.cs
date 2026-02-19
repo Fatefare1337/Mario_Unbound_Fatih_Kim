@@ -19,8 +19,6 @@ namespace Mario_Unbound
             InitializeComponent();
             ClientSize = new Size(800, 500);
 
-            
-
         }
 
         private void Btn_Schlieﬂen_Click(object sender, EventArgs e)
