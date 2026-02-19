@@ -7,7 +7,7 @@ namespace Mario_Unbound
 
         /*
          * Kim stunden: ca. 2 Stunden
-         *Fatih stunden: ca. 
+         *Fatih stunden: ca. 1 Stunde
          */
 
         bool angemeldet = false;
