@@ -1,4 +1,7 @@
+using Microsoft.VisualBasic.ApplicationServices;
+using System.IO;
 using System.Security.Cryptography.X509Certificates;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 
 namespace Mario_Unbound
 {
@@ -13,6 +16,9 @@ namespace Mario_Unbound
         PictureBox picture;
         PictureBox Logo;
         Button Btn_Start; Button Btn_Level; Button Btn_Team; Button Btn_Profil; Button Btn_Schließen;
+        public string _profilBenutzername, _profilEmail, _profiPasswort;
+
+        private string dateiPfad = "proildaten.txt";
 
         public Form1()
         {
@@ -23,15 +29,7 @@ namespace Mario_Unbound
         }
 
         #region OhneGame
-        private void Registrieren_Click(object? sender, EventArgs e)
-        {
-            //ToDO:
-            //Abspeichern der Benutzerdaten in Textdatei. 
-            //übertragen der Benutzerdaten in Profilseite.
-            //Checken ob Benutzername bereits existiert.
-            //Registieren und anmelden unterscheiden
-            angemeldet = true ;
-        } //in bearbeitung
+        
 
         private void Cmb_Avatarbild_SelectedIndexChanged(object? sender, EventArgs e)
         {
@@ -115,6 +113,8 @@ namespace Mario_Unbound
                 txb_Benutzername.Top = 60;
                 txb_Benutzername.Left = 140;
 
+                
+
                 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - - - - -
 
                 Label lbl_EMail = new Label();
@@ -132,6 +132,7 @@ namespace Mario_Unbound
                 txb_Email.Top = 120;
                 txb_Email.Left = 140;
 
+               
                 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
                 Label lbl_Passwort = new Label();
@@ -150,6 +151,7 @@ namespace Mario_Unbound
                 txb_Passwort.Top = 180;
                 txb_Passwort.Left = 140;
                 txb_Passwort.UseSystemPasswordChar = true;
+                
 
                 //- - - - - - - - - - - - - - - - - - - - - -  - - - - - - - -  - - - - - - -  - - - - - - - - - - -
 
@@ -167,7 +169,7 @@ namespace Mario_Unbound
                 cmb_Avatarbild.SelectedIndex = 2;
 
                 //- - - - -  - - -  - - - - - - - - -  - - - - -  - - -   - - - - - - - - - - - - - - - - - - - - - - - - - - -  - -- - - -
-
+                
                 Button Btn_Registrieren = new Button();
 
                 Btn_Registrieren.BackColor = Color.White;
@@ -179,7 +181,10 @@ namespace Mario_Unbound
                 Controls.Add(Btn_Registrieren);
 
                 Btn_Registrieren.Click += Registrieren_Click;
+
+
             }
+            
             else
             {
                 //wenn angemeldet dann neues Profil anzeigen. 
@@ -187,7 +192,50 @@ namespace Mario_Unbound
             }
 
         } //in bearbeitung
+        private void Registrieren_Click(object? sender, EventArgs e)
+        {
+            
+            // Prüftt, ob die erforderlichen Felder ausgefüllt sind
+            if (string.IsNullOrEmpty(_profilBenutzername) || string.IsNullOrEmpty(_profilEmail) || string.IsNullOrEmpty(_profiPasswort))
+            {
+                MessageBox.Show("Bitte Name, Passwort und E-amil eingeben!");
+                return;
+            }
 
+            // Prüft, ob der Benutzername oder die E-Mail bereits in der Textdatei existiert
+            if (File.Exists(dateiPfad))
+            {
+                var zeilen = File.ReadAllLines(dateiPfad);
+                foreach (var zeile in zeilen)
+                {
+                    var benutzerDaten = zeile.Split('|'); // die Daten in der Textdatei sollten durch '|' getrennt sein, z.B. "Benutzername|Email|Passwort"; macht alles übersichtlicher
+                    if (benutzerDaten.Length >= 3)
+                    {
+                        // Index [0] ist _profilBenutzername, Index [1] ist _profilEmail
+                        if (benutzerDaten[0].ToLower() == _profilBenutzername.ToLower())
+                        {
+                            MessageBox.Show("Dieser Benutzername ist bereits vergeben!");
+                            return;
+                        }
+                        if (benutzerDaten[1].ToLower() == _profilEmail.ToLower())
+                        {
+                            MessageBox.Show("Diese E-Mail wird bereits verwendet!");
+                            return;
+                        }
+                    }
+                }
+            }
+
+            File.AppendAllText(dateiPfad, $"{_profilBenutzername}|{_profilEmail}|{_profiPasswort}{Environment.NewLine}");
+            MessageBox.Show("Registrierung erfolgreich!");
+
+
+            //ToDO:
+            //Auf die Textboxen zugreifen.
+            //Registieren und anmelden unterscheiden
+            angemeldet = true;
+
+        } //in bearbeitung
         protected void Startseite()
         {
 
