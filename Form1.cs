@@ -14,6 +14,7 @@ namespace Mario_Unbound
      */
     public partial class Form1 : Form
     {
+        
         bool angemeldet = false;
         ComboBox cmb_Avatarbild;
         PictureBox picture;
@@ -22,13 +23,13 @@ namespace Mario_Unbound
         public string _profilBenutzername, _profilEmail, _profiPasswort;
         TextBox txb_Benutzername, txb_Email, txb_Passwort;
 
-        private string dateiPfad = "proildaten.txt";
+        private string dateiPfad = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "profildaten.txt");
 
         public Form1()
         {
             InitializeComponent();
             ClientSize = new Size(800, 500);
-
+            
             Startseite();
         }
 
@@ -243,10 +244,12 @@ namespace Mario_Unbound
             File.AppendAllText(dateiPfad, $"{_profilBenutzername}|{_profilEmail}|{_profiPasswort}{Environment.NewLine}");
             MessageBox.Show("Registrierung erfolgreich!");
 
+            txb_Benutzername.Clear();
+            txb_Email.Clear();
+            txb_Passwort.Clear();
 
-            
-            
-           
+
+
             angemeldet = true;
 
         } //in bearbeitung
