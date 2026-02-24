@@ -7,7 +7,10 @@ namespace Mario_Unbound
 {
     /*
     * Kim stunden: ca. 3 Stunden
-    *Fatih stunden: ca. 1 Stunde
+    *Fatih stunden: ca. 2 1/2 Stunde
+    *
+    *probleme:
+    *- bei email kann man kein @ dazuschreiben
      */
     public partial class Form1 : Form
     {
@@ -17,6 +20,7 @@ namespace Mario_Unbound
         PictureBox Logo;
         Button Btn_Start; Button Btn_Level; Button Btn_Team; Button Btn_Profil; Button Btn_Schließen;
         public string _profilBenutzername, _profilEmail, _profiPasswort;
+        TextBox txb_Benutzername, txb_Email, txb_Passwort;
 
         private string dateiPfad = "proildaten.txt";
 
@@ -106,7 +110,8 @@ namespace Mario_Unbound
                 lbl_Benutzername.Top = 60;
                 lbl_Benutzername.Left = 20;
 
-                TextBox txb_Benutzername = new TextBox();
+                txb_Benutzername = new TextBox();
+                
 
                 Controls.Add(txb_Benutzername);
                 txb_Benutzername.Size = new Size(140, 20);
@@ -125,7 +130,8 @@ namespace Mario_Unbound
                 lbl_EMail.Top = 120;
                 lbl_EMail.Left = 20;
 
-                TextBox txb_Email = new TextBox();
+                txb_Email = new TextBox();
+                
 
                 Controls.Add(txb_Email);
                 txb_Email.Size = new Size(140, 20);
@@ -138,13 +144,15 @@ namespace Mario_Unbound
                 Label lbl_Passwort = new Label();
                 lbl_Passwort.Text = "Passwort:";
 
+
                 Controls.Add(lbl_Passwort);
                 lbl_Passwort.AutoSize = true;
                 lbl_Passwort.Top = 180;
                 lbl_Passwort.Left = 20;
 
 
-                TextBox txb_Passwort = new TextBox();
+                txb_Passwort = new TextBox();
+                
 
                 Controls.Add(txb_Passwort);
                 txb_Passwort.Size = new Size(140, 20);
@@ -194,17 +202,21 @@ namespace Mario_Unbound
         } //in bearbeitung
         private void Registrieren_Click(object? sender, EventArgs e)
         {
-            
+            _profiPasswort = txb_Passwort.Text;
+            _profilBenutzername = txb_Benutzername.Text;
+            _profilEmail = txb_Email.Text;
+
             // Prüftt, ob die erforderlichen Felder ausgefüllt sind
             if (string.IsNullOrEmpty(_profilBenutzername) || string.IsNullOrEmpty(_profilEmail) || string.IsNullOrEmpty(_profiPasswort))
             {
-                MessageBox.Show("Bitte Name, Passwort und E-amil eingeben!");
+                MessageBox.Show("Bitte Name, Passwort und E-mail eingeben!");
                 return;
             }
-
+            //gemini code
             // Prüft, ob der Benutzername oder die E-Mail bereits in der Textdatei existiert
             if (File.Exists(dateiPfad))
             {
+              
                 var zeilen = File.ReadAllLines(dateiPfad);
                 foreach (var zeile in zeilen)
                 {
@@ -226,13 +238,15 @@ namespace Mario_Unbound
                 }
             }
 
+            //wenn existent kommt anmeldung erfolgreich, sonst das
+            
             File.AppendAllText(dateiPfad, $"{_profilBenutzername}|{_profilEmail}|{_profiPasswort}{Environment.NewLine}");
             MessageBox.Show("Registrierung erfolgreich!");
 
 
-            //ToDO:
-            //Auf die Textboxen zugreifen.
-            //Registieren und anmelden unterscheiden
+            
+            
+           
             angemeldet = true;
 
         } //in bearbeitung
