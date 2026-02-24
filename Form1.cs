@@ -239,8 +239,8 @@ namespace Mario_Unbound
             }
 
             //wenn existent kommt anmeldung erfolgreich, sonst das
-
-            File.AppendAllText(dateiPfad, $"{_profilBenutzername}|{_profilEmail}|{_profiPasswort}{Environment.NewLine}");
+            string benutzerdaten = $"{_profilBenutzername}|{_profilEmail}|{_profiPasswort}{Environment.NewLine}";
+            File.AppendAllText(dateiPfad, benutzerdaten);
             MessageBox.Show("Registrierung erfolgreich!");
 
             txb_Passwort.Clear();
