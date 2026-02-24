@@ -14,7 +14,6 @@ namespace Mario_Unbound
      */
     public partial class Form1 : Form
     {
-        
         bool angemeldet = false;
         ComboBox cmb_Avatarbild;
         PictureBox picture;
@@ -23,22 +22,22 @@ namespace Mario_Unbound
         public string _profilBenutzername, _profilEmail, _profiPasswort;
         TextBox txb_Benutzername, txb_Email, txb_Passwort;
 
-        private string dateiPfad = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "profildaten.txt");
+        private string dateiPfad = "proildaten.txt";
 
         public Form1()
         {
             InitializeComponent();
             ClientSize = new Size(800, 500);
-            
+
             Startseite();
         }
 
         #region OhneGame
-        
+
 
         private void Cmb_Avatarbild_SelectedIndexChanged(object? sender, EventArgs e)
         {
-            
+
             if (cmb_Avatarbild.SelectedIndex == 0)
             {
                 Controls.Remove(picture);
@@ -84,13 +83,13 @@ namespace Mario_Unbound
                 picture.Left = 500;
                 picture.Show();
             }
-        }  
+        }
 
         protected void Schließen()
         {
             this.Close();
-        } 
-              
+        }
+
         protected void Profilseite()
         {
             this.Controls.Clear();
@@ -102,7 +101,7 @@ namespace Mario_Unbound
             if (angemeldet == false)
             {
 
-                
+
                 Label lbl_Benutzername = new Label();
                 lbl_Benutzername.Text = "Benutzername:";
 
@@ -112,14 +111,14 @@ namespace Mario_Unbound
                 lbl_Benutzername.Left = 20;
 
                 txb_Benutzername = new TextBox();
-                
+
 
                 Controls.Add(txb_Benutzername);
                 txb_Benutzername.Size = new Size(140, 20);
                 txb_Benutzername.Top = 60;
                 txb_Benutzername.Left = 140;
 
-                
+
 
                 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - - - - -
 
@@ -132,14 +131,14 @@ namespace Mario_Unbound
                 lbl_EMail.Left = 20;
 
                 txb_Email = new TextBox();
-                
+
 
                 Controls.Add(txb_Email);
                 txb_Email.Size = new Size(140, 20);
                 txb_Email.Top = 120;
                 txb_Email.Left = 140;
 
-               
+
                 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
                 Label lbl_Passwort = new Label();
@@ -153,14 +152,14 @@ namespace Mario_Unbound
 
 
                 txb_Passwort = new TextBox();
-                
+
 
                 Controls.Add(txb_Passwort);
                 txb_Passwort.Size = new Size(140, 20);
                 txb_Passwort.Top = 180;
                 txb_Passwort.Left = 140;
                 txb_Passwort.UseSystemPasswordChar = true;
-                
+
 
                 //- - - - - - - - - - - - - - - - - - - - - -  - - - - - - - -  - - - - - - -  - - - - - - - - - - -
 
@@ -178,7 +177,7 @@ namespace Mario_Unbound
                 cmb_Avatarbild.SelectedIndex = 2;
 
                 //- - - - -  - - -  - - - - - - - - -  - - - - -  - - -   - - - - - - - - - - - - - - - - - - - - - - - - - - -  - -- - - -
-                
+
                 Button Btn_Registrieren = new Button();
 
                 Btn_Registrieren.BackColor = Color.White;
@@ -193,7 +192,7 @@ namespace Mario_Unbound
 
 
             }
-            
+
             else
             {
                 //wenn angemeldet dann neues Profil anzeigen. 
@@ -217,7 +216,7 @@ namespace Mario_Unbound
             // Prüft, ob der Benutzername oder die E-Mail bereits in der Textdatei existiert
             if (File.Exists(dateiPfad))
             {
-              
+
                 var zeilen = File.ReadAllLines(dateiPfad);
                 foreach (var zeile in zeilen)
                 {
@@ -240,13 +239,11 @@ namespace Mario_Unbound
             }
 
             //wenn existent kommt anmeldung erfolgreich, sonst das
-            
+
             File.AppendAllText(dateiPfad, $"{_profilBenutzername}|{_profilEmail}|{_profiPasswort}{Environment.NewLine}");
             MessageBox.Show("Registrierung erfolgreich!");
 
-            txb_Benutzername.Clear();
-            txb_Email.Clear();
-            txb_Passwort.Clear();
+
 
 
 
@@ -429,17 +426,17 @@ namespace Mario_Unbound
             Profilseite();
         }
 
-        private void Btn_Team_Click(object? sender, EventArgs e) 
+        private void Btn_Team_Click(object? sender, EventArgs e)
         {
             Teamseite();
         }
 
         private void Btn_Level_Click(object? sender, EventArgs e) //in bearbeitung
         {
-            
+
         }
 
-        private void Btn_Start_Click(object? sender, EventArgs e) 
+        private void Btn_Start_Click(object? sender, EventArgs e)
         {
             this.Controls.Clear();
         } //In bearbeitung
@@ -451,4 +448,4 @@ namespace Mario_Unbound
 
     }
 }
-        
+
