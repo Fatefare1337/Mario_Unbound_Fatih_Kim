@@ -243,7 +243,9 @@ namespace Mario_Unbound
             File.AppendAllText(dateiPfad, $"{_profilBenutzername}|{_profilEmail}|{_profiPasswort}{Environment.NewLine}");
             MessageBox.Show("Registrierung erfolgreich!");
 
-
+            txb_Passwort.Clear();
+            txb_Email.Clear();
+            txb_Benutzername.Clear();
 
 
 
