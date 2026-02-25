@@ -8,5 +8,6 @@ namespace Mario_Unbound
 {
     internal class Charakter
     {
+        //idk oder so
     }
 }
