@@ -6,15 +6,15 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 namespace Mario_Unbound
 {
     /*
-    * Kim stunden: ca. 3 Stunden
-    *Fatih stunden: ca. 2 1/2 Stunde
+    * Kim stunden: ca. 5 Stunden
+    *Fatih stunden: ca. 4 1/2 Stunde
     *
     *probleme:
     *- bei email kann man kein @ dazuschreiben
+    *Zweiter Button ntig für anmelden
      */
     public partial class Form1 : Form
     {
-        bool bittegehen = false;
         bool angemeldet = false;
         ComboBox cmb_Avatarbild;
         PictureBox picture;
@@ -22,6 +22,7 @@ namespace Mario_Unbound
         Button Btn_Start; Button Btn_Level; Button Btn_Team; Button Btn_Profil; Button Btn_Schließen;
         public string _profilBenutzername, _profilEmail, _profiPasswort;
         TextBox txb_Benutzername, txb_Email, txb_Passwort;
+        PictureBox pb_Mario, pb_Luigi, pb_Toad, pb_Waluigi;
 
         private string dateiPfad = "proildaten.txt";
 
@@ -30,11 +31,31 @@ namespace Mario_Unbound
             InitializeComponent();
             ClientSize = new Size(800, 500);
 
+            pb_Luigi = new PictureBox();
+            pb_Toad = new PictureBox();
+            pb_Mario = new PictureBox();
+            pb_Waluigi = new PictureBox();
             Startseite();
+
+            #region Charaktere
+
+            Charakter Mario = new Charakter();
+            Mario.augewählterCharakter(pb_Mario, "Mario");
+
+            Charakter Luig = new Charakter();
+            Luig.augewählterCharakter(pb_Luigi, "Luigi");
+
+            Charakter Toad = new Charakter();
+            Toad.augewählterCharakter(pb_Toad, "Toad");
+
+            Charakter Waluigi = new Charakter();
+            Waluigi.augewählterCharakter(pb_Waluigi, "Waluigi");
+
+            #endregion
+
         }
 
         #region OhneGame
-
 
         private void Cmb_Avatarbild_SelectedIndexChanged(object? sender, EventArgs e)
         {
@@ -86,6 +107,7 @@ namespace Mario_Unbound
             }
         }
 
+        #region Methoden
         protected void Schließen()
         {
             this.Close();
@@ -201,6 +223,7 @@ namespace Mario_Unbound
             }
 
         } //in bearbeitung
+
         private void Registrieren_Click(object? sender, EventArgs e)
         {
             _profiPasswort = txb_Passwort.Text;
@@ -253,6 +276,8 @@ namespace Mario_Unbound
             angemeldet = true;
 
         } //in bearbeitung
+
+
         protected void Startseite()
         {
 
@@ -419,6 +444,82 @@ namespace Mario_Unbound
             BereichK.Left = 100;
         } //in bearbeitung
 
+        protected void Charakterübersicht()
+        {
+            this.Controls.Clear();
+
+            Label lbl_Charakterwahl = new Label();
+            lbl_Charakterwahl.Text = "Choose your Character!";
+
+            Controls.Add(lbl_Charakterwahl);
+            lbl_Charakterwahl.Size = new Size(200, 30);
+            lbl_Charakterwahl.Top = 30;
+            lbl_Charakterwahl.Left = (ClientSize.Width - lbl_Charakterwahl.Width) / 2;
+            lbl_Charakterwahl.Font = new Font(lbl_Charakterwahl.Font, FontStyle.Bold);
+
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - -
+
+            pb_Mario = new PictureBox();
+            Controls.Add(pb_Mario);
+
+            pb_Mario.SizeMode = PictureBoxSizeMode.StretchImage;
+            pb_Mario.Image = Image.FromFile("MarioAuswahl.png");
+            pb_Mario.Size = new Size(180, 300);
+            pb_Mario.Top = 100;
+            pb_Mario.Left = 10;
+
+            pb_Mario.Click += Pb_MarioAuswahl_Click;
+
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - -
+
+            pb_Luigi = new PictureBox();
+            Controls.Add(pb_Luigi);
+
+            pb_Luigi.SizeMode = PictureBoxSizeMode.StretchImage;
+            pb_Luigi.Image = Image.FromFile("MarioAuswahl.png");
+            pb_Luigi.Size = new Size(180, 300);
+            pb_Luigi.Top = 100;
+            pb_Luigi.Left = 200;
+
+            pb_Luigi.Click += Pb_Luigi_Click;
+
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - -
+
+            pb_Toad = new PictureBox();
+            Controls.Add(pb_Toad);
+
+            pb_Toad.SizeMode = PictureBoxSizeMode.StretchImage;
+            pb_Toad.Image = Image.FromFile("MarioAuswahl.png");
+            pb_Toad.Size = new Size(180, 300);
+            pb_Toad.Top = 100;
+            pb_Toad.Left = 400;
+
+            pb_Toad.Click += Pb_Toad_Click;
+
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - -
+
+            pb_Waluigi = new PictureBox();
+            Controls.Add(pb_Waluigi);
+
+            pb_Waluigi.SizeMode = PictureBoxSizeMode.StretchImage;
+            pb_Waluigi.Image = Image.FromFile("MarioAuswahl.png");
+            pb_Waluigi.Size = new Size(180, 300);
+            pb_Waluigi.Top = 100;
+            pb_Waluigi.Left = 600;
+
+            pb_Waluigi.Click += Pb_Waluigi_Click;
+        } //Charakterbilder ändern dann fertig
+
+
+
+
+
+
+
+
+        #endregion
+
+        #region Buttons
         private void Btn_Schließen_Click1(object? sender, EventArgs e)
         {
             Schließen();
@@ -439,12 +540,99 @@ namespace Mario_Unbound
 
         }
 
+        private void Registrieren_Click(object? sender, EventArgs e)
+        {
+            _profiPasswort = txb_Passwort.Text;
+            _profilBenutzername = txb_Benutzername.Text;
+            _profilEmail = txb_Email.Text;
+
+            // Prüftt, ob die erforderlichen Felder ausgefüllt sind
+            if (string.IsNullOrEmpty(_profilBenutzername) || string.IsNullOrEmpty(_profilEmail) || string.IsNullOrEmpty(_profiPasswort))
+            {
+                MessageBox.Show("Bitte Name, Passwort und E-mail eingeben!");
+                return;
+            }
+            //gemini code
+            // Prüft, ob der Benutzername oder die E-Mail bereits in der Textdatei existiert
+            if (File.Exists(dateiPfad))
+            {
+
+                var zeilen = File.ReadAllLines(dateiPfad);
+                foreach (var zeile in zeilen)
+                {
+                    var benutzerDaten = zeile.Split('|'); // die Daten in der Textdatei sollten durch '|' getrennt sein, z.B. "Benutzername|Email|Passwort"; macht alles übersichtlicher
+                    if (benutzerDaten.Length >= 3)
+                    {
+                        // Index [0] ist _profilBenutzername, Index [1] ist _profilEmail
+                        if (benutzerDaten[0].ToLower() == _profilBenutzername.ToLower())
+                        {
+                            MessageBox.Show("Dieser Benutzername ist bereits vergeben!");
+                            return;
+                        }
+                        if (benutzerDaten[1].ToLower() == _profilEmail.ToLower())
+                        {
+                            MessageBox.Show("Diese E-Mail wird bereits verwendet!");
+                            return;
+                        }
+                    }
+                }
+            }
+
+            //wenn existent kommt anmeldung erfolgreich, sonst das
+
+            File.AppendAllText(dateiPfad, $"{_profilBenutzername}|{_profilEmail}|{_profiPasswort}{Environment.NewLine}");
+            MessageBox.Show("Registrierung erfolgreich!");
+
+            txb_Passwort.Clear();
+            txb_Email.Clear();
+            txb_Benutzername.Clear();
+
+
+
+            angemeldet = true;
+
+        } //in bearbeitung
+
+
         private void Btn_Start_Click(object? sender, EventArgs e)
         {
-            this.Controls.Clear();
+            Charakterübersicht();
+
+
+
         } //In bearbeitung
 
-        #endregion 
+
+
+        #endregion
+
+
+
+        #endregion
+
+        #region Mitgame
+
+
+        private void Pb_MarioAuswahl_Click(object? sender, EventArgs e)
+        {
+
+        }
+
+        private void Pb_Luigi_Click(object? sender, EventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void Pb_Toad_Click(object? sender, EventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void Pb_Waluigi_Click(object? sender, EventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
 
         //TODO: Profil
         //Zurück Button
