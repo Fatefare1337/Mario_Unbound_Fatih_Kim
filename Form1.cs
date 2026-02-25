@@ -14,6 +14,7 @@ namespace Mario_Unbound
      */
     public partial class Form1 : Form
     {
+        bool bittegehen = false;
         bool angemeldet = false;
         ComboBox cmb_Avatarbild;
         PictureBox picture;
