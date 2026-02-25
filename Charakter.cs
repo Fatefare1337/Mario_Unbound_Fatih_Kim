@@ -8,6 +8,15 @@ namespace Mario_Unbound
 {
     internal class Charakter
     {
-        //idk oder so
+
+        PictureBox ausgewählterCharacter;
+
+        public string _Charaktername { get; set; }
+
+        public void augewählterCharakter(PictureBox ausgewählterCharacter, string _charactername)
+        {
+            this.ausgewählterCharacter = ausgewählterCharacter;
+            _Charaktername = _charactername;
+        }
     }
 }

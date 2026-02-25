@@ -12,6 +12,7 @@ namespace Mario_Unbound
     *probleme:
     *- bei email kann man kein @ dazuschreiben
     *Zweiter Button ntig für anmelden
+    *Beim regritieren  auch das profilbild abspeichern 
      */
     public partial class Form1 : Form
     {
@@ -39,7 +40,17 @@ namespace Mario_Unbound
 
             #region Charaktere
 
-            
+            Charakter Mario = new Charakter();
+            Mario.augewählterCharakter(pb_Mario, "Mario");
+
+            Charakter Luigi = new Charakter();
+            Luigi.augewählterCharakter(pb_Luigi, "Luigi");
+
+            Charakter Toad = new Charakter();
+            Toad.augewählterCharakter(pb_Toad, "Toad");
+
+            Charakter Waluigi = new Charakter();
+            Waluigi.augewählterCharakter(pb_Waluigi, "Waluigi");
 
             #endregion
 
