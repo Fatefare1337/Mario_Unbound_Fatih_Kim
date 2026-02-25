@@ -39,17 +39,7 @@ namespace Mario_Unbound
 
             #region Charaktere
 
-            Charakter Mario = new Charakter();
-            Mario.augewählterCharakter(pb_Mario, "Mario");
-
-            Charakter Luig = new Charakter();
-            Luig.augewählterCharakter(pb_Luigi, "Luigi");
-
-            Charakter Toad = new Charakter();
-            Toad.augewählterCharakter(pb_Toad, "Toad");
-
-            Charakter Waluigi = new Charakter();
-            Waluigi.augewählterCharakter(pb_Waluigi, "Waluigi");
+            
 
             #endregion
 
@@ -224,58 +214,7 @@ namespace Mario_Unbound
 
         } //in bearbeitung
 
-        private void Registrieren_Click(object? sender, EventArgs e)
-        {
-            _profiPasswort = txb_Passwort.Text;
-            _profilBenutzername = txb_Benutzername.Text;
-            _profilEmail = txb_Email.Text;
-
-            // Prüftt, ob die erforderlichen Felder ausgefüllt sind
-            if (string.IsNullOrEmpty(_profilBenutzername) || string.IsNullOrEmpty(_profilEmail) || string.IsNullOrEmpty(_profiPasswort))
-            {
-                MessageBox.Show("Bitte Name, Passwort und E-mail eingeben!");
-                return;
-            }
-            //gemini code
-            // Prüft, ob der Benutzername oder die E-Mail bereits in der Textdatei existiert
-            if (File.Exists(dateiPfad))
-            {
-
-                var zeilen = File.ReadAllLines(dateiPfad);
-                foreach (var zeile in zeilen)
-                {
-                    var benutzerDaten = zeile.Split('|'); // die Daten in der Textdatei sollten durch '|' getrennt sein, z.B. "Benutzername|Email|Passwort"; macht alles übersichtlicher
-                    if (benutzerDaten.Length >= 3)
-                    {
-                        // Index [0] ist _profilBenutzername, Index [1] ist _profilEmail
-                        if (benutzerDaten[0].ToLower() == _profilBenutzername.ToLower())
-                        {
-                            MessageBox.Show("Dieser Benutzername ist bereits vergeben!");
-                            return;
-                        }
-                        if (benutzerDaten[1].ToLower() == _profilEmail.ToLower())
-                        {
-                            MessageBox.Show("Diese E-Mail wird bereits verwendet!");
-                            return;
-                        }
-                    }
-                }
-            }
-
-            //wenn existent kommt anmeldung erfolgreich, sonst das
-            string benutzerdaten = $"{_profilBenutzername}|{_profilEmail}|{_profiPasswort}{Environment.NewLine}";
-            File.AppendAllText(dateiPfad, benutzerdaten);
-            MessageBox.Show("Registrierung erfolgreich!");
-
-            txb_Passwort.Clear();
-            txb_Email.Clear();
-            txb_Benutzername.Clear();
-
-
-
-            angemeldet = true;
-
-        } //in bearbeitung
+ 
 
 
         protected void Startseite()
