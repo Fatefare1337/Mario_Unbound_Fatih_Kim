@@ -225,9 +225,6 @@ namespace Mario_Unbound
 
         } //in bearbeitung
 
- 
-
-
         protected void Startseite()
         {
 
@@ -459,12 +456,6 @@ namespace Mario_Unbound
 
             pb_Waluigi.Click += Pb_Waluigi_Click;
         } //Charakterbilder ändern dann fertig
-
-
-
-
-
-
 
 
         #endregion
