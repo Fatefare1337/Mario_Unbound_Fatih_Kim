@@ -561,17 +561,17 @@ namespace Mario_Unbound
 
         private void Pb_Luigi_Click(object? sender, EventArgs e)
         {
-            throw new NotImplementedException();
+            
         }
 
         private void Pb_Toad_Click(object? sender, EventArgs e)
         {
-            throw new NotImplementedException();
+            
         }
 
         private void Pb_Waluigi_Click(object? sender, EventArgs e)
         {
-            throw new NotImplementedException();
+            
         }
         #endregion
 
