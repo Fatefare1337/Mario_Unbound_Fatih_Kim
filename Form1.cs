@@ -6,13 +6,11 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 namespace Mario_Unbound
 {
     /*
-    * Kim stunden: ca. 5 Stunden
-    *Fatih stunden: ca. 4 1/2 Stunde
+    * Kim stunden: ca. 6 Stunden
+    *Fatih stunden: ca. 5 1/2 Stunde
     *
     *probleme:
     *- bei email kann man kein @ dazuschreiben
-    *Zweiter Button ntig für anmelden
-    *Beim regritieren  auch das profilbild abspeichern 
      */
     public partial class Form1 : Form
     {
@@ -24,6 +22,7 @@ namespace Mario_Unbound
         public string _profilBenutzername, _profilEmail, _profiPasswort;
         TextBox txb_Benutzername, txb_Email, txb_Passwort;
         PictureBox pb_Mario, pb_Luigi, pb_Toad, pb_Waluigi;
+        public int _currentLevel = 1;
 
         private string dateiPfad = "proildaten.txt";
 
@@ -58,6 +57,20 @@ namespace Mario_Unbound
 
         #region OhneGame
 
+        public void ZurückButton()
+        {
+            Button Btn_Zurück = new Button();
+            Btn_Zurück.BackColor = Color.Red;
+            Btn_Zurück.ForeColor = Color.White;
+            Btn_Zurück.Size = new Size(100, 30);
+            Btn_Zurück.Text = "Zurück";
+            Btn_Zurück.Top = 10;
+            Btn_Zurück.Left = 10;
+            Controls.Add(Btn_Zurück);
+
+            Btn_Zurück.Click += Btn_Zurück_Click;
+        }
+
         private void Cmb_Avatarbild_SelectedIndexChanged(object? sender, EventArgs e)
         {
 
@@ -72,7 +85,7 @@ namespace Mario_Unbound
                 picture.Size = new Size(200, 200);
                 picture.SizeMode = PictureBoxSizeMode.Zoom;
                 picture.Top = 100;
-                picture.Left = 500;
+                picture.Left = 30;
                 picture.Show();
 
 
@@ -88,7 +101,7 @@ namespace Mario_Unbound
                 picture.Size = new Size(200, 200);
                 picture.SizeMode = PictureBoxSizeMode.Zoom;
                 picture.Top = 100;
-                picture.Left = 500;
+                picture.Left = 30;
                 picture.Show();
 
             }
@@ -103,10 +116,10 @@ namespace Mario_Unbound
                 picture.SizeMode = PictureBoxSizeMode.Zoom;
                 picture.Size = new Size(200, 200);
                 picture.Top = 100;
-                picture.Left = 500;
+                picture.Left = 30;
                 picture.Show();
             }
-        }
+        } 
 
         #region Methoden
         protected void Schließen()
@@ -119,7 +132,7 @@ namespace Mario_Unbound
             this.Controls.Clear();
             ClientSize = new Size(800, 500);
 
-            //Zurück Pfeil hinzufügen
+            ZurückButton();
 
 
             if (angemeldet == false)
@@ -185,20 +198,9 @@ namespace Mario_Unbound
                 txb_Passwort.UseSystemPasswordChar = true;
 
 
-                //- - - - - - - - - - - - - - - - - - - - - -  - - - - - - - -  - - - - - - -  - - - - - - - - - - -
+                
 
-                cmb_Avatarbild = new ComboBox();
-                Controls.Add(cmb_Avatarbild);
-
-                cmb_Avatarbild.Items.Add("Avatar Frau");
-                cmb_Avatarbild.Items.Add("Avatar Mann");
-                cmb_Avatarbild.Items.Add("Avatar Dino");
-
-                cmb_Avatarbild.Top = 30;
-                cmb_Avatarbild.Left = 500;
-                cmb_Avatarbild.SelectedIndexChanged += Cmb_Avatarbild_SelectedIndexChanged;
-
-                cmb_Avatarbild.SelectedIndex = 2;
+               
 
                 //- - - - -  - - -  - - - - - - - - -  - - - - -  - - -   - - - - - - - - - - - - - - - - - - - - - - - - - - -  - -- - - -
 
@@ -209,18 +211,69 @@ namespace Mario_Unbound
                 Btn_Registrieren.Size = new Size(100, 30);
                 Btn_Registrieren.Text = "Registrieren";
                 Btn_Registrieren.Top = 400;
-                Btn_Registrieren.Left = (ClientSize.Width - Btn_Registrieren.Width) / 2;
+                Btn_Registrieren.Left = 350;
                 Controls.Add(Btn_Registrieren);
 
                 Btn_Registrieren.Click += Registrieren_Click;
 
+                //- - - - -  - - -  - - - - - - - - -  - - - - -  - - -   - - - - - - - - - - - - - - - - - - - - - - - - - - -  - -- - - -
 
+
+                
+
+                Button Btn_Anmelden = new Button();
+
+                Btn_Anmelden.BackColor = Color.White;
+                Btn_Anmelden.ForeColor = Color.Black;
+                Btn_Anmelden.Size = new Size(100, 30);
+                Btn_Anmelden.Text = "Anmelden";
+                Btn_Anmelden.Top = 400;
+                Btn_Anmelden.Left = 450;
+                Controls.Add(Btn_Anmelden);
+
+                Btn_Anmelden.Click += Btn_Anmelden_Click;
             }
 
             else
             {
-                //wenn angemeldet dann neues Profil anzeigen. 
-                //Checken mit textdokument
+                cmb_Avatarbild = new ComboBox();
+                Controls.Add(cmb_Avatarbild);
+
+                cmb_Avatarbild.Items.Add("Avatar Frau");
+                cmb_Avatarbild.Items.Add("Avatar Mann");
+                cmb_Avatarbild.Items.Add("Avatar Dino");
+
+                cmb_Avatarbild.Top = 40;
+                cmb_Avatarbild.Left = 300;
+                cmb_Avatarbild.SelectedIndexChanged += Cmb_Avatarbild_SelectedIndexChanged;
+
+                cmb_Avatarbild.SelectedIndex = 2;
+
+                //- - - - - - - - - - - - - - - - - - - - - - - -  - - - - -  - - - - - - - - - - - - - - - - - -
+
+                Label lbl_gespeicherterBenutzername = new Label();
+                lbl_gespeicherterBenutzername.Text = $"Benutzername: {_profilBenutzername}";
+
+                Controls.Add(lbl_gespeicherterBenutzername);
+                lbl_gespeicherterBenutzername.AutoSize = true;
+                lbl_gespeicherterBenutzername.Top = 100;
+                lbl_gespeicherterBenutzername.Left = 300;
+                lbl_gespeicherterBenutzername.Font = new Font(lbl_gespeicherterBenutzername.Font, FontStyle.Bold);
+
+                //- - - - - - - - - - - - - - - - - - - - - - - -  - - - - -  - - - - - - - - - - - - - - - - - -
+
+                Label lbl_gespeicherteEmail = new Label();
+                lbl_gespeicherteEmail.Text = $"Email: {_profilEmail}";
+
+                Controls.Add(lbl_gespeicherteEmail);
+                lbl_gespeicherteEmail.AutoSize = true;
+                lbl_gespeicherteEmail.Top = 150;
+                lbl_gespeicherteEmail.Left = 300;
+                lbl_gespeicherteEmail.Font = new Font(lbl_gespeicherteEmail.Font, FontStyle.Bold);
+
+                //- - - - - - - - - - - - - - - - - - - - - - - -  - - - - -  - - - - - - - - - - - - - - - - - -
+
+                //Foto von map unten oder impressum oder so 
             }
 
         } //in bearbeitung
@@ -330,7 +383,8 @@ namespace Mario_Unbound
 
             //TODO:
             //Bilder /Character der Teammitglieder hinzufügen.
-            //Zurück Pfeil hinzufügen
+            
+            ZurückButton();
 
             Label NameKim = new Label();
             NameKim.Text = "Kimberly Heinzl";
@@ -389,11 +443,13 @@ namespace Mario_Unbound
             BereichK.AutoSize = true;
             BereichK.Top = 360;
             BereichK.Left = 100;
-        } //in bearbeitung
+        } //Ende Projekt stunden und fotos
 
         protected void Charakterübersicht()
         {
             this.Controls.Clear();
+
+            ZurückButton();
 
             Label lbl_Charakterwahl = new Label();
             lbl_Charakterwahl.Text = "Choose your Character!";
@@ -457,6 +513,11 @@ namespace Mario_Unbound
             pb_Waluigi.Click += Pb_Waluigi_Click;
         } //Charakterbilder ändern dann fertig
 
+        protected void Levelseite()
+        {
+            Controls.Clear();
+            ZurückButton();
+        } //in bearbeitung
 
         #endregion
 
@@ -478,7 +539,7 @@ namespace Mario_Unbound
 
         private void Btn_Level_Click(object? sender, EventArgs e) //in bearbeitung
         {
-
+            
         }
 
         private void Registrieren_Click(object? sender, EventArgs e)
@@ -519,7 +580,7 @@ namespace Mario_Unbound
                 }
             }
 
-            //wenn existent kommt anmeldung erfolgreich, sonst das
+            
 
             File.AppendAllText(dateiPfad, $"{_profilBenutzername}|{_profilEmail}|{_profiPasswort}{Environment.NewLine}");
             MessageBox.Show("Registrierung erfolgreich!");
@@ -531,8 +592,28 @@ namespace Mario_Unbound
 
 
             angemeldet = true;
+            Profilseite();
 
-        } //in bearbeitung
+        }  
+
+        private void Btn_Anmelden_Click(object? sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(_profilBenutzername) || string.IsNullOrEmpty(_profilEmail) || string.IsNullOrEmpty(_profiPasswort))
+            {
+                MessageBox.Show("Bitte Name, Passwort und E-mail eingeben!");
+                return;
+
+                //wenn passwort, email und benutzername passen, dann angemeldet auf true.
+                //Hier muss noch ein zweiter button hin
+            }
+
+
+        } //in anmeldung
+
+        private void Btn_Zurück_Click(object? sender, EventArgs e)
+        {
+            Startseite();
+        }
 
 
         private void Btn_Start_Click(object? sender, EventArgs e)
@@ -553,7 +634,7 @@ namespace Mario_Unbound
 
         #region Mitgame
 
-
+        
         private void Pb_MarioAuswahl_Click(object? sender, EventArgs e)
         {
 
@@ -575,8 +656,7 @@ namespace Mario_Unbound
         }
         #endregion
 
-        //TODO: Profil
-        //Zurück Button
+       
 
     }
 }
