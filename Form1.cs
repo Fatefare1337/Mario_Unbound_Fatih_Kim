@@ -6,8 +6,8 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 namespace Mario_Unbound
 {
     /*
-    * Kim stunden: ca. 6 Stunden
-    *Fatih stunden: ca. 5 1/2 Stunde
+    * Kim stunden: ca. 7 Stunden
+    *Fatih stunden: ca. 7 Stunde
     *
     *probleme:
     *- bei email kann man kein @ dazuschreiben
