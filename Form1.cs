@@ -14,17 +14,17 @@ namespace Mario_Unbound
      */
     public partial class Form1 : Form
     {
-        bool angemeldet = false;
-        ComboBox cmb_Avatarbild;
+        bool SignedIn = false;
+        ComboBox cmb_Profilpicture;
         PictureBox picture;
         PictureBox Logo;
-        Button Btn_Start; Button Btn_Level; Button Btn_Team; Button Btn_Profil; Button Btn_Schließen;
-        public string _profilBenutzername, _profilEmail, _profiPasswort;
-        TextBox txb_Benutzername, txb_Email, txb_Passwort;
+        Button Btn_Start; Button Btn_Level; Button Btn_Team; Button Btn_Profil; Button Btn_Closing;
+        public string _profilUsername, _profilEmail, _profiPassword;
+        TextBox txb_Username, txb_Email, txb_Password;
         PictureBox pb_Mario, pb_Luigi, pb_Toad, pb_Waluigi;
         public int _currentLevel = 1;
 
-        private string dateiPfad = "proildaten.txt";
+        private string file = "proildaten.txt";
 
         public Form1()
         {
@@ -35,29 +35,36 @@ namespace Mario_Unbound
             pb_Toad = new PictureBox();
             pb_Mario = new PictureBox();
             pb_Waluigi = new PictureBox();
-            Startseite();
+            Homepage();
 
             #region Charaktere
 
-            Charakter Mario = new Charakter();
-            Mario.augewählterCharakter(pb_Mario, "Mario");
+            Character Mario = new Character();
+            Mario.chosenCharacters(pb_Mario, "Mario");
 
-            Charakter Luigi = new Charakter();
-            Luigi.augewählterCharakter(pb_Luigi, "Luigi");
+            Character Luigi = new Character();
+            Luigi.chosenCharacters(pb_Luigi, "Luigi");
 
-            Charakter Toad = new Charakter();
-            Toad.augewählterCharakter(pb_Toad, "Toad");
+            Character Toad = new Character();
+            Toad.chosenCharacters(pb_Toad, "Toad");
 
-            Charakter Waluigi = new Charakter();
-            Waluigi.augewählterCharakter(pb_Waluigi, "Waluigi");
+            Character Waluigi = new Character(); //ER STIRBT
+            Waluigi.chosenCharacters(pb_Waluigi, "Waluigi");
 
             #endregion
 
+
+            #region Gegner
+            Enemy enemy1 = new Enemy();
+            enemy1.BuildingEnemies(1);
+            enemy1.MovingNonHuman();
+
+            #endregion
         }
 
         #region OhneGame
 
-        public void ZurückButton()
+        public void BackToPage()
         {
             Button Btn_Zurück = new Button();
             Btn_Zurück.BackColor = Color.Red;
@@ -68,13 +75,13 @@ namespace Mario_Unbound
             Btn_Zurück.Left = 10;
             Controls.Add(Btn_Zurück);
 
-            Btn_Zurück.Click += Btn_Zurück_Click;
+            Btn_Zurück.Click += Btn_Back_Click;
         }
 
-        private void Cmb_Avatarbild_SelectedIndexChanged(object? sender, EventArgs e)
+        private void Cmb_ProfilePicture_SelectedIndexChanged(object? sender, EventArgs e)
         {
 
-            if (cmb_Avatarbild.SelectedIndex == 0)
+            if (cmb_Profilpicture.SelectedIndex == 0)
             {
                 Controls.Remove(picture);
                 picture = new PictureBox();
@@ -91,7 +98,7 @@ namespace Mario_Unbound
 
             }
 
-            else if (cmb_Avatarbild.SelectedIndex == 1)
+            else if (cmb_Profilpicture.SelectedIndex == 1)
             {
                 Controls.Remove(picture);
                 picture = new PictureBox();
@@ -122,20 +129,20 @@ namespace Mario_Unbound
         } 
 
         #region Methoden
-        protected void Schließen()
+        protected void Closing()
         {
             this.Close();
         }
 
-        protected void Profilseite()
+        protected void Profilpage()
         {
             this.Controls.Clear();
             ClientSize = new Size(800, 500);
 
-            ZurückButton();
+            BackToPage();
 
 
-            if (angemeldet == false)
+            if (SignedIn == false)
             {
 
 
@@ -147,13 +154,13 @@ namespace Mario_Unbound
                 lbl_Benutzername.Top = 60;
                 lbl_Benutzername.Left = 20;
 
-                txb_Benutzername = new TextBox();
+                txb_Username = new TextBox();
 
 
-                Controls.Add(txb_Benutzername);
-                txb_Benutzername.Size = new Size(140, 20);
-                txb_Benutzername.Top = 60;
-                txb_Benutzername.Left = 140;
+                Controls.Add(txb_Username);
+                txb_Username.Size = new Size(140, 20);
+                txb_Username.Top = 60;
+                txb_Username.Left = 140;
 
 
 
@@ -188,14 +195,14 @@ namespace Mario_Unbound
                 lbl_Passwort.Left = 20;
 
 
-                txb_Passwort = new TextBox();
+                txb_Password = new TextBox();
 
 
-                Controls.Add(txb_Passwort);
-                txb_Passwort.Size = new Size(140, 20);
-                txb_Passwort.Top = 180;
-                txb_Passwort.Left = 140;
-                txb_Passwort.UseSystemPasswordChar = true;
+                Controls.Add(txb_Password);
+                txb_Password.Size = new Size(140, 20);
+                txb_Password.Top = 180;
+                txb_Password.Left = 140;
+                txb_Password.UseSystemPasswordChar = true;
 
 
                 
@@ -214,7 +221,7 @@ namespace Mario_Unbound
                 Btn_Registrieren.Left = 350;
                 Controls.Add(Btn_Registrieren);
 
-                Btn_Registrieren.Click += Registrieren_Click;
+                Btn_Registrieren.Click += SignUp_Click;
 
                 //- - - - -  - - -  - - - - - - - - -  - - - - -  - - -   - - - - - - - - - - - - - - - - - - - - - - - - - - -  - -- - - -
 
@@ -231,28 +238,28 @@ namespace Mario_Unbound
                 Btn_Anmelden.Left = 450;
                 Controls.Add(Btn_Anmelden);
 
-                Btn_Anmelden.Click += Btn_Anmelden_Click;
+                Btn_Anmelden.Click += Btn_SignIn_Click;
             }
 
             else
             {
-                cmb_Avatarbild = new ComboBox();
-                Controls.Add(cmb_Avatarbild);
+                cmb_Profilpicture = new ComboBox();
+                Controls.Add(cmb_Profilpicture);
 
-                cmb_Avatarbild.Items.Add("Avatar Frau");
-                cmb_Avatarbild.Items.Add("Avatar Mann");
-                cmb_Avatarbild.Items.Add("Avatar Dino");
+                cmb_Profilpicture.Items.Add("Avatar Frau");
+                cmb_Profilpicture.Items.Add("Avatar Mann");
+                cmb_Profilpicture.Items.Add("Avatar Dino");
 
-                cmb_Avatarbild.Top = 40;
-                cmb_Avatarbild.Left = 300;
-                cmb_Avatarbild.SelectedIndexChanged += Cmb_Avatarbild_SelectedIndexChanged;
+                cmb_Profilpicture.Top = 40;
+                cmb_Profilpicture.Left = 300;
+                cmb_Profilpicture.SelectedIndexChanged += Cmb_ProfilePicture_SelectedIndexChanged;
 
-                cmb_Avatarbild.SelectedIndex = 2;
+                cmb_Profilpicture.SelectedIndex = 2;
 
                 //- - - - - - - - - - - - - - - - - - - - - - - -  - - - - -  - - - - - - - - - - - - - - - - - -
 
                 Label lbl_gespeicherterBenutzername = new Label();
-                lbl_gespeicherterBenutzername.Text = $"Benutzername: {_profilBenutzername}";
+                lbl_gespeicherterBenutzername.Text = $"Benutzername: {_profilUsername}";
 
                 Controls.Add(lbl_gespeicherterBenutzername);
                 lbl_gespeicherterBenutzername.AutoSize = true;
@@ -278,7 +285,7 @@ namespace Mario_Unbound
 
         } //in bearbeitung
 
-        protected void Startseite()
+        protected void Homepage()
         {
 
             Controls.Clear();
@@ -349,31 +356,31 @@ namespace Mario_Unbound
 
             //- - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-            Btn_Schließen = new Button();
-            Controls.Add(Btn_Schließen);
+            Btn_Closing = new Button();
+            Controls.Add(Btn_Closing);
 
-            Btn_Schließen.BackColor = Color.White;
-            Btn_Schließen.ForeColor = Color.Black;
-            Btn_Schließen.Size = new Size(100, 30);
-            Btn_Schließen.Text = "Schließen";
-            Btn_Schließen.Top = 380;
-            Btn_Schließen.Left = 30;
-            Controls.Add(Btn_Schließen);
+            Btn_Closing.BackColor = Color.White;
+            Btn_Closing.ForeColor = Color.Black;
+            Btn_Closing.Size = new Size(100, 30);
+            Btn_Closing.Text = "Schließen";
+            Btn_Closing.Top = 380;
+            Btn_Closing.Left = 30;
+            Controls.Add(Btn_Closing);
 
-            Btn_Schließen.Click += Btn_Schließen_Click1;
+            Btn_Closing.Click += Btn_Closing_Click1;
 
             //- - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-            if (angemeldet == false)
+            if (SignedIn == false)
             {
-                Label lbl_Warnung = new Label();
-                lbl_Warnung.Text = "Bitte melden Sie sich an, um Ihren Stand zu speichern!";
-                Controls.Add(lbl_Warnung);
-                lbl_Warnung.AutoSize = true;
-                lbl_Warnung.Top = 30;
-                lbl_Warnung.Left = 400;
-                lbl_Warnung.ForeColor = Color.Red;
-                lbl_Warnung.Font = new Font(lbl_Warnung.Font, FontStyle.Bold);
+                Label lbl_Warning = new Label();
+                lbl_Warning.Text = "Bitte melden Sie sich an, um Ihren Stand zu speichern!";
+                Controls.Add(lbl_Warning);
+                lbl_Warning.AutoSize = true;
+                lbl_Warning.Top = 30;
+                lbl_Warning.Left = 400;
+                lbl_Warning.ForeColor = Color.Red;
+                lbl_Warning.Font = new Font(lbl_Warning.Font, FontStyle.Bold);
             }
         }
 
@@ -384,7 +391,7 @@ namespace Mario_Unbound
             //TODO:
             //Bilder /Character der Teammitglieder hinzufügen.
             
-            ZurückButton();
+            BackToPage();
 
             Label NameKim = new Label();
             NameKim.Text = "Kimberly Heinzl";
@@ -406,59 +413,59 @@ namespace Mario_Unbound
 
             //- - - - - -- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - 
 
-            Label Stundenanzahl = new Label();
-            Stundenanzahl.Text = "Gearbeitete Stunden: ";
+            Label HourCountF = new Label();
+            HourCountF.Text = "Gearbeitete Stunden: ";
 
-            Controls.Add(Stundenanzahl);
-            Stundenanzahl.AutoSize = true;
-            Stundenanzahl.Top = 330;
-            Stundenanzahl.Left = 500;
-
-            //- - - - - -- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - 
-
-            Label StundenanzahlK = new Label();
-            StundenanzahlK.Text = "Gearbeitete Stunden: ";
-
-            Controls.Add(StundenanzahlK);
-            StundenanzahlK.AutoSize = true;
-            StundenanzahlK.Top = 330;
-            StundenanzahlK.Left = 100;
+            Controls.Add(HourCountF);
+            HourCountF.AutoSize = true;
+            HourCountF.Top = 330;
+            HourCountF.Left = 500;
 
             //- - - - - -- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - 
 
-            Label Bereich = new Label();
-            Bereich.Text = "Gearbeitete Stunden: ";
+            Label HourCountK = new Label();
+            HourCountK.Text = "Gearbeitete Stunden: ";
 
-            Controls.Add(Bereich);
-            Bereich.AutoSize = true;
-            Bereich.Top = 360;
-            Bereich.Left = 500;
+            Controls.Add(HourCountK);
+            HourCountK.AutoSize = true;
+            HourCountK.Top = 330;
+            HourCountK.Left = 100;
 
             //- - - - - -- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - 
 
-            Label BereichK = new Label();
-            BereichK.Text = "Gearbeitete Stunden: ";
+            Label AreaF = new Label();
+            AreaF.Text = "Gearbeitete Bereich: ";
 
-            Controls.Add(BereichK);
-            BereichK.AutoSize = true;
-            BereichK.Top = 360;
-            BereichK.Left = 100;
+            Controls.Add(AreaF);
+            AreaF.AutoSize = true;
+            AreaF.Top = 360;
+            AreaF.Left = 500;
+
+            //- - - - - -- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - 
+
+            Label AreaK = new Label();
+            AreaK.Text = "Gearbeitete Bereich: ";
+
+            Controls.Add(AreaK);
+            AreaK.AutoSize = true;
+            AreaK.Top = 360;
+            AreaK.Left = 100;
         } //Ende Projekt stunden und fotos
 
-        protected void Charakterübersicht()
+        protected void Characters()
         {
             this.Controls.Clear();
 
-            ZurückButton();
+            BackToPage();
 
-            Label lbl_Charakterwahl = new Label();
-            lbl_Charakterwahl.Text = "Choose your Character!";
+            Label lbl_CharakterChoosing = new Label();
+            lbl_CharakterChoosing.Text = "Choose your Character!";
 
-            Controls.Add(lbl_Charakterwahl);
-            lbl_Charakterwahl.Size = new Size(200, 30);
-            lbl_Charakterwahl.Top = 30;
-            lbl_Charakterwahl.Left = (ClientSize.Width - lbl_Charakterwahl.Width) / 2;
-            lbl_Charakterwahl.Font = new Font(lbl_Charakterwahl.Font, FontStyle.Bold);
+            Controls.Add(lbl_CharakterChoosing);
+            lbl_CharakterChoosing.Size = new Size(200, 30);
+            lbl_CharakterChoosing.Top = 30;
+            lbl_CharakterChoosing.Left = (ClientSize.Width - lbl_CharakterChoosing.Width) / 2;
+            lbl_CharakterChoosing.Font = new Font(lbl_CharakterChoosing.Font, FontStyle.Bold);
 
             //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - -
 
@@ -516,20 +523,20 @@ namespace Mario_Unbound
         protected void Levelseite()
         {
             Controls.Clear();
-            ZurückButton();
+            BackToPage();
         } //in bearbeitung
 
         #endregion
 
         #region Buttons
-        private void Btn_Schließen_Click1(object? sender, EventArgs e)
+        private void Btn_Closing_Click1(object? sender, EventArgs e)
         {
-            Schließen();
+            Closing();
         }
 
         private void Btn_Profil_Click1(object? sender, EventArgs e)
         {
-            Profilseite();
+            Profilpage();
         }
 
         private void Btn_Team_Click(object? sender, EventArgs e)
@@ -542,31 +549,31 @@ namespace Mario_Unbound
             
         }
 
-        private void Registrieren_Click(object? sender, EventArgs e)
+        private void SignUp_Click(object? sender, EventArgs e)
         {
-            _profiPasswort = txb_Passwort.Text;
-            _profilBenutzername = txb_Benutzername.Text;
+            _profiPassword = txb_Password.Text;
+            _profilUsername = txb_Username.Text;
             _profilEmail = txb_Email.Text;
 
             // Prüftt, ob die erforderlichen Felder ausgefüllt sind
-            if (string.IsNullOrEmpty(_profilBenutzername) || string.IsNullOrEmpty(_profilEmail) || string.IsNullOrEmpty(_profiPasswort))
+            if (string.IsNullOrEmpty(_profilUsername) || string.IsNullOrEmpty(_profilEmail) || string.IsNullOrEmpty(_profiPassword))
             {
                 MessageBox.Show("Bitte Name, Passwort und E-mail eingeben!");
                 return;
             }
             //gemini code
             // Prüft, ob der Benutzername oder die E-Mail bereits in der Textdatei existiert
-            if (File.Exists(dateiPfad))
+            if (File.Exists(file))
             {
 
-                var zeilen = File.ReadAllLines(dateiPfad);
+                var zeilen = File.ReadAllLines(file);
                 foreach (var zeile in zeilen)
                 {
                     var benutzerDaten = zeile.Split('|'); // die Daten in der Textdatei sollten durch '|' getrennt sein, z.B. "Benutzername|Email|Passwort"; macht alles übersichtlicher
                     if (benutzerDaten.Length >= 3)
                     {
                         // Index [0] ist _profilBenutzername, Index [1] ist _profilEmail
-                        if (benutzerDaten[0].ToLower() == _profilBenutzername.ToLower())
+                        if (benutzerDaten[0].ToLower() == _profilUsername.ToLower())
                         {
                             MessageBox.Show("Dieser Benutzername ist bereits vergeben!");
                             return;
@@ -582,23 +589,23 @@ namespace Mario_Unbound
 
             
 
-            File.AppendAllText(dateiPfad, $"{_profilBenutzername}|{_profilEmail}|{_profiPasswort}{Environment.NewLine}");
+            File.AppendAllText(file, $"{_profilUsername}|{_profilEmail}|{_profiPassword}{Environment.NewLine}");
             MessageBox.Show("Registrierung erfolgreich!");
 
-            txb_Passwort.Clear();
+            txb_Password.Clear();
             txb_Email.Clear();
-            txb_Benutzername.Clear();
+            txb_Username.Clear();
 
 
 
-            angemeldet = true;
-            Profilseite();
+            SignedIn = true;
+            Profilpage();
 
         }  
 
-        private void Btn_Anmelden_Click(object? sender, EventArgs e)
+        private void Btn_SignIn_Click(object? sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(_profilBenutzername) || string.IsNullOrEmpty(_profilEmail) || string.IsNullOrEmpty(_profiPasswort))
+            if (string.IsNullOrEmpty(_profilUsername) || string.IsNullOrEmpty(_profilEmail) || string.IsNullOrEmpty(_profiPassword))
             {
                 MessageBox.Show("Bitte Name, Passwort und E-mail eingeben!");
                 return;
@@ -610,15 +617,15 @@ namespace Mario_Unbound
 
         } //in anmeldung
 
-        private void Btn_Zurück_Click(object? sender, EventArgs e)
+        private void Btn_Back_Click(object? sender, EventArgs e)
         {
-            Startseite();
+            Homepage();
         }
 
 
         private void Btn_Start_Click(object? sender, EventArgs e)
         {
-            Charakterübersicht();
+            Characters();
 
 
 

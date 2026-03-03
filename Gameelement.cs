@@ -6,7 +6,19 @@ using System.Threading.Tasks;
 
 namespace Mario_Unbound
 {
-    internal class Gameelement
+    public class Gameelement :Panel
     {
+        protected int _movingspeed;
+
+        public int _jumpheight;
+
+        public void MovingNonHuman()
+        {
+            Left += _movingspeed;
+            Top -= _jumpheight;
+        }
+
+        
+
     }
 }
