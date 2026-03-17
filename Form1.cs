@@ -6,11 +6,16 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 namespace Mario_Unbound
 {
     /*
-    * Kim stunden: ca. 7 Stunden
-    *Fatih stunden: ca. 7 Stunde
+    * Kim stunden: ca. 8 Stunden
+    *Fatih stunden: ca. 8 Stunde
     *
     *probleme:
     *- bei email kann man kein @ dazuschreiben
+    *Level abspeichern
+    *idee: man kann level nicht auswählen, aber es gibt eine zurücksetzten button wo man seinen
+    *fortschritt zurücksetzt
+    *alles muss auf englisch gemacht werden
+    *abspeichern current level on account
      */
     public partial class Form1 : Form
     {
@@ -25,6 +30,10 @@ namespace Mario_Unbound
         public int _currentLevel = 1;
 
         private string file = "proildaten.txt";
+        Character Mario = new Character();
+        Character Luigi = new Character();
+        Character Toad = new Character();
+        Character Waluigi = new Character();
 
         public Form1()
         {
@@ -39,16 +48,10 @@ namespace Mario_Unbound
 
             #region Charaktere
 
-            Character Mario = new Character();
+            
             Mario.chosenCharacters(pb_Mario, "Mario");
-
-            Character Luigi = new Character();
             Luigi.chosenCharacters(pb_Luigi, "Luigi");
-
-            Character Toad = new Character();
-            Toad.chosenCharacters(pb_Toad, "Toad");
-
-            Character Waluigi = new Character(); //ER STIRBT
+            Toad.chosenCharacters(pb_Toad, "Toad");           
             Waluigi.chosenCharacters(pb_Waluigi, "Waluigi");
 
             #endregion
@@ -283,7 +286,7 @@ namespace Mario_Unbound
                 //Foto von map unten oder impressum oder so 
             }
 
-        } //in bearbeitung
+        } //in bearbeitung, Fortschritt zurücksetzen button
 
         protected void Homepage()
         {
@@ -304,26 +307,15 @@ namespace Mario_Unbound
             Btn_Start.ForeColor = Color.Black;
             Btn_Start.Size = new Size(100, 30);
             Btn_Start.Text = "Start";
-            Btn_Start.Top = 220;
+            Btn_Start.Top = 260;
             Btn_Start.Left = 30;
             Controls.Add(Btn_Start);
 
             Btn_Start.Click += Btn_Start_Click;
 
-            //- - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - - - - - - - -  - - - - - -
+           
 
-            Btn_Level = new Button();
-            Controls.Add(Btn_Level);
-
-            Btn_Level.BackColor = Color.White;
-            Btn_Level.ForeColor = Color.Black;
-            Btn_Level.Size = new Size(100, 30);
-            Btn_Level.Text = "Level";
-            Btn_Level.Top = 260;
-            Btn_Level.Left = 30;
-            Controls.Add(Btn_Level);
-
-            Btn_Level.Click += Btn_Level_Click;
+            
             //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
             Btn_Team = new Button();
@@ -520,11 +512,7 @@ namespace Mario_Unbound
             pb_Waluigi.Click += Pb_Waluigi_Click;
         } //Charakterbilder ändern dann fertig
 
-        protected void Levelseite()
-        {
-            Controls.Clear();
-            BackToPage();
-        } //in bearbeitung
+        
 
         #endregion
 
@@ -544,10 +532,7 @@ namespace Mario_Unbound
             Teamseite();
         }
 
-        private void Btn_Level_Click(object? sender, EventArgs e) //in bearbeitung
-        {
-            
-        }
+       
 
         private void SignUp_Click(object? sender, EventArgs e)
         {
@@ -641,10 +626,22 @@ namespace Mario_Unbound
 
         #region Mitgame
 
+        public void AufbauLevel1()
+        {
+            Controls.Clear();
+            Panel Boden = new Panel();
+            Boden.BackColor = Color.Green;
+            Controls.Add( Boden );
+            Boden.Size = new Size(ClientSize.Width, 50);
+            Boden.Location = new Point(0, ClientSize.Height - Boden.Height);
+
+        }
         
         private void Pb_MarioAuswahl_Click(object? sender, EventArgs e)
         {
-
+            AufbauLevel1();
+            //charakter auf eine Panel machen mit pb bild
+            Mario.Spawn();
         }
 
         private void Pb_Luigi_Click(object? sender, EventArgs e)
