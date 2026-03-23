@@ -7,7 +7,7 @@ namespace Mario_Unbound
 {
     /*
     * Kim stunden: ca. 8 Stunden
-    *Fatih stunden: ca. 8 Stunde
+    *Fatih stunden: ca. 9,5 Stunde
     *
     *probleme:
     *- bei email kann man kein @ dazuschreiben
@@ -35,10 +35,26 @@ namespace Mario_Unbound
         Character Toad = new Character();
         Character Waluigi = new Character();
 
+        // Spieler- und Bewegungsfelder
+        private Panel player;
+        private Panel Boden;
+        private System.Windows.Forms.Timer gameTimer;
+        private bool goLeft = false;
+        private bool goRight = false;
+        private bool jumping = false;
+        private int jumpSpeed = 0;
+        private int jumpForce = 12;
+        private int playerSpeed = 8;
+
         public Form1()
         {
             InitializeComponent();
             ClientSize = new Size(800, 500);
+
+            // Tastaturereignisse auf dem Formular aktivieren
+            this.KeyPreview = true;
+            this.KeyDown += Form1_KeyDown;
+            this.KeyUp += Form1_KeyUp;
 
             pb_Luigi = new PictureBox();
             pb_Toad = new PictureBox();
@@ -629,14 +645,107 @@ namespace Mario_Unbound
         public void AufbauLevel1()
         {
             Controls.Clear();
-            Panel Boden = new Panel();
+            
+            // Boden erstellen oder wiederverwenden
+            if (Boden == null)
+                Boden = new Panel();
             Boden.BackColor = Color.Green;
-            Controls.Add( Boden );
+            if (!Controls.Contains(Boden)) Controls.Add(Boden);
             Boden.Size = new Size(ClientSize.Width, 50);
             Boden.Location = new Point(0, ClientSize.Height - Boden.Height);
 
+            // Spielerpanel erstellen
+            if (player == null)
+                player = new Panel();
+            player.BackColor = Color.Blue;
+            player.Size = new Size(40, 60);
+            player.Location = new Point(50, Boden.Top - player.Height);
+            if (!Controls.Contains(player)) Controls.Add(player);
+
+            // Timer für Bewegung und Gravitation
+            if (gameTimer == null)
+            {
+                gameTimer = new System.Windows.Forms.Timer();
+                gameTimer.Interval = 20; // ~50 FPS
+                gameTimer.Tick += GameTimer_Tick;
+            }
+            gameTimer.Start();
         }
-        
+
+        private void GameTimer_Tick(object? sender, EventArgs e)
+        {
+            if (player == null || Boden == null) return;
+
+            // Horizontalbewegung
+            if (goLeft)
+            {
+                player.Left = Math.Max(0, player.Left - playerSpeed);
+            }
+            if (goRight)
+            {
+                player.Left = Math.Min(ClientSize.Width - player.Width, player.Left + playerSpeed);
+            }
+
+            // Springen / Gravitation
+            if (jumping)
+            {
+                player.Top -= jumpSpeed;
+                jumpSpeed -= 1; // Gravitationseffekt während Aufstieg
+
+                if (jumpSpeed <= 0)
+                {
+                    jumping = false; // Aufstieg beendet
+                }
+            }
+            else
+            {
+                // Fallen bis Boden erreicht
+                if (player.Bottom < Boden.Top)
+                {
+                    // einfache Gravitation mit maximaler Schrittweite
+                    player.Top += Math.Min(5, Boden.Top - player.Bottom);
+                }
+                else
+                {
+                    // Auf Boden setzen
+                    player.Top = Boden.Top - player.Height;
+                }
+            }
+        }
+
+        private void Form1_KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Left || e.KeyCode == Keys.A)
+            {
+                goLeft = true;
+            }
+            if (e.KeyCode == Keys.Right || e.KeyCode == Keys.D)
+            {
+                goRight = true;
+            }
+            if ((e.KeyCode == Keys.Space || e.KeyCode == Keys.Up || e.KeyCode == Keys.W) && player != null && Boden != null)
+            {
+                // Nur springen, wenn auf dem Boden
+                if (player.Bottom >= Boden.Top)
+                {
+                    jumping = true;
+                    jumpSpeed = jumpForce;
+                }
+            }
+        }
+
+        private void Form1_KeyUp(object? sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Left || e.KeyCode == Keys.A)
+            {
+                goLeft = false;
+            }
+            if (e.KeyCode == Keys.Right || e.KeyCode == Keys.D)
+            {
+                goRight = false;
+            }
+        }
+
         private void Pb_MarioAuswahl_Click(object? sender, EventArgs e)
         {
             AufbauLevel1();
