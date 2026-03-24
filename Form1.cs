@@ -43,7 +43,7 @@ namespace Mario_Unbound
         private bool goRight = false;
         private bool jumping = false;
         private int jumpSpeed = 0;
-        private int jumpForce = 12;
+        private int jumpForce = 20;
         private int playerSpeed = 8;
 
         public Form1()
@@ -150,7 +150,7 @@ namespace Mario_Unbound
         #region Methoden
         protected void Closing()
         {
-            this.Close();
+            Close();
         }
 
         protected void Profilpage()
@@ -674,7 +674,8 @@ namespace Mario_Unbound
 
         private void GameTimer_Tick(object? sender, EventArgs e)
         {
-            if (player == null || Boden == null) return;
+            if (player == null || Boden == null) 
+                return;
 
             // Horizontalbewegung
             if (goLeft)
@@ -703,7 +704,7 @@ namespace Mario_Unbound
                 if (player.Bottom < Boden.Top)
                 {
                     // einfache Gravitation mit maximaler Schrittweite
-                    player.Top += Math.Min(5, Boden.Top - player.Bottom);
+                    player.Top += 5;
                 }
                 else
                 {
