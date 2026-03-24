@@ -41,9 +41,10 @@ namespace Mario_Unbound
         private System.Windows.Forms.Timer gameTimer;
         private bool goLeft = false;
         private bool goRight = false;
-        private bool jumping = false;
-        private int jumpSpeed = 0;
+        // replaced jumpSpeed/jumping with vertical velocity
+        private int verticalVelocity = 0;
         private int jumpForce = 20;
+        private int gravity = 1; // gravity applied each tick
         private int playerSpeed = 8;
 
         public Form1()
@@ -687,30 +688,22 @@ namespace Mario_Unbound
                 player.Left = Math.Min(ClientSize.Width - player.Width, player.Left + playerSpeed);
             }
 
-            // Springen / Gravitation
-            if (jumping)
-            {
-                player.Top -= jumpSpeed;
-                jumpSpeed -= 1; // Gravitationseffekt während Aufstieg
+            // Vertikale Bewegung: wende vertikale Geschwindigkeit und Gravitation an
+            player.Top += verticalVelocity;
+            verticalVelocity += gravity;
 
-                if (jumpSpeed <= 0)
-                {
-                    jumping = false; // Aufstieg beendet
-                }
-            }
-            else
+            // Kollision mit Boden: wenn unter oder auf Boden, setze auf Boden und Null Velocity
+            if (player.Bottom >= Boden.Top)
             {
-                // Fallen bis Boden erreicht
-                if (player.Bottom < Boden.Top)
-                {
-                    // einfache Gravitation mit maximaler Schrittweite
-                    player.Top += 5;
-                }
-                else
-                {
-                    // Auf Boden setzen
-                    player.Top = Boden.Top - player.Height;
-                }
+                player.Top = Boden.Top - player.Height;
+                verticalVelocity = 0;
+            }
+
+            // Verhindere, dass Spieler aus dem Fenster nach oben verschwindet
+            if (player.Top < 0)
+            {
+                player.Top = 0;
+                verticalVelocity = Math.Max(0, verticalVelocity);
             }
         }
 
@@ -726,11 +719,10 @@ namespace Mario_Unbound
             }
             if ((e.KeyCode == Keys.Space || e.KeyCode == Keys.Up || e.KeyCode == Keys.W) && player != null && Boden != null)
             {
-                // Nur springen, wenn auf dem Boden
+                // Nur springen, wenn auf dem Boden (verticalVelocity == 0 und auf Boden)
                 if (player.Bottom >= Boden.Top)
                 {
-                    jumping = true;
-                    jumpSpeed = jumpForce;
+                    verticalVelocity = -jumpForce; // nach oben: negative Geschwindigkeit
                 }
             }
         }
