@@ -16,8 +16,8 @@ namespace Mario_Unbound
         
         public void chosenCharacters(PictureBox ausgewählterCharacter, string _charactername) 
         {
-            this.chosenCharacter = ausgewählterCharacter;
-            this._charactername = _charactername;
+            chosenCharacter = ausgewählterCharacter;
+            _charactername = _charactername;
 
             _movingspeed = 10;
             _jumpheight = 20;

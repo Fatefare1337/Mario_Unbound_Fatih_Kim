@@ -6,8 +6,8 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 namespace Mario_Unbound
 {
     /*
-    * Kim stunden: ca. 8 Stunden
-    *Fatih stunden: ca. 9,5 Stunde
+    * Kim stunden: ca. 9,5 Stunden
+    * Fatih stunden: ca. 11 Stunde
     *
     *probleme:
     *- bei email kann man kein @ dazuschreiben
@@ -27,8 +27,11 @@ namespace Mario_Unbound
         public string _profilUsername, _profilEmail, _profiPassword;
         TextBox txb_Username, txb_Email, txb_Password;
         PictureBox pb_Mario, pb_Luigi, pb_Toad, pb_Waluigi;
+        
         public int _currentLevel = 1;
-
+        PictureBox pb = new PictureBox();
+        
+        
         private string file = "proildaten.txt";
         Character Mario = new Character();
         Character Luigi = new Character();
@@ -45,7 +48,7 @@ namespace Mario_Unbound
         private int verticalVelocity = 0;
         private int jumpForce = 20;
         private int gravity = 1; // gravity applied each tick
-        private int playerSpeed = 8;
+        private int playerSpeed = 10;
 
         public Form1()
         {
@@ -53,9 +56,9 @@ namespace Mario_Unbound
             ClientSize = new Size(800, 500);
 
             // Tastaturereignisse auf dem Formular aktivieren
-            this.KeyPreview = true;
-            this.KeyDown += Form1_KeyDown;
-            this.KeyUp += Form1_KeyUp;
+            KeyPreview = true; // Keypreview muss aktiviert sein, damit das Formular KeyDown/KeyUp empfängt, auch wenn andere Steuerelemente den Fokus haben
+            KeyDown += Form1_KeyDown;
+            KeyUp += Form1_KeyUp;
 
             pb_Luigi = new PictureBox();
             pb_Toad = new PictureBox();
@@ -65,11 +68,7 @@ namespace Mario_Unbound
 
             #region Charaktere
 
-            
-            Mario.chosenCharacters(pb_Mario, "Mario");
-            Luigi.chosenCharacters(pb_Luigi, "Luigi");
-            Toad.chosenCharacters(pb_Toad, "Toad");           
-            Waluigi.chosenCharacters(pb_Waluigi, "Waluigi");
+            pb_Mario.Image = Image.FromFile("MarioAuswahl.png");
 
             #endregion
 
@@ -156,7 +155,7 @@ namespace Mario_Unbound
 
         protected void Profilpage()
         {
-            this.Controls.Clear();
+            Controls.Clear();
             ClientSize = new Size(800, 500);
 
             BackToPage();
@@ -463,7 +462,7 @@ namespace Mario_Unbound
 
         protected void Characters()
         {
-            this.Controls.Clear();
+            Controls.Clear();
 
             BackToPage();
 
@@ -648,20 +647,23 @@ namespace Mario_Unbound
             Controls.Clear();
             
             // Boden erstellen oder wiederverwenden
-            if (Boden == null)
-                Boden = new Panel();
+            
+            Boden = new Panel();
             Boden.BackColor = Color.Green;
-            if (!Controls.Contains(Boden)) Controls.Add(Boden);
+            if (!Controls.Contains(Boden)) 
+                Controls.Add(Boden);
             Boden.Size = new Size(ClientSize.Width, 50);
             Boden.Location = new Point(0, ClientSize.Height - Boden.Height);
 
             // Spielerpanel erstellen
-            if (player == null)
-                player = new Panel();
-            player.BackColor = Color.Blue;
+           
+            player = new Panel();
+
+            pb.SizeMode = PictureBoxSizeMode.Zoom;
             player.Size = new Size(40, 60);
             player.Location = new Point(50, Boden.Top - player.Height);
-            if (!Controls.Contains(player)) Controls.Add(player);
+            if (!Controls.Contains(player))
+                Controls.Add(player);
 
             // Timer für Bewegung und Gravitation
             if (gameTimer == null)
@@ -678,16 +680,26 @@ namespace Mario_Unbound
             if (player == null || Boden == null) 
                 return;
 
+
+
             // Horizontalbewegung
             if (goLeft)
             {
-                player.Left = Math.Max(0, player.Left - playerSpeed);
+                player.Left -= playerSpeed;
             }
             if (goRight)
             {
-                player.Left = Math.Min(ClientSize.Width - player.Width, player.Left + playerSpeed);
-            }
+                player.Left += playerSpeed;
 
+            }
+            if (player.Left < 0)
+            {
+                player.Left = 0;
+            }
+            if (player.Right > ClientSize.Width)
+            {
+                player.Left = ClientSize.Width - player.Width;
+            }
             // Vertikale Bewegung: wende vertikale Geschwindigkeit und Gravitation an
             player.Top += verticalVelocity;
             verticalVelocity += gravity;
@@ -717,6 +729,7 @@ namespace Mario_Unbound
             {
                 goRight = true;
             }
+
             if ((e.KeyCode == Keys.Space || e.KeyCode == Keys.Up || e.KeyCode == Keys.W) && player != null && Boden != null)
             {
                 // Nur springen, wenn auf dem Boden (verticalVelocity == 0 und auf Boden)
@@ -741,28 +754,43 @@ namespace Mario_Unbound
 
         private void Pb_MarioAuswahl_Click(object? sender, EventArgs e)
         {
+            // Baue Level zuerst auf, damit 'player' nicht null ist
             AufbauLevel1();
+
+            // pb vorbereiten (Bild und Layout)
+            if (pb_Mario?.Image != null)
+            {
+                pb.Image = pb_Mario.Image;
+                pb.SizeMode = PictureBoxSizeMode.Zoom;
+                pb.Dock = DockStyle.Fill;
+            }
+
+            // pb erst hinzufügen, wenn player existiert
+            if (player != null && pb.Parent != player)
+            {
+                player.Controls.Add(pb);
+            }
+
+            Mario.chosenCharacters(pb_Mario, "Mario");
             //charakter auf eine Panel machen mit pb bild
             Mario.Spawn();
         }
 
         private void Pb_Luigi_Click(object? sender, EventArgs e)
         {
-            
+            Luigi.chosenCharacters(pb_Luigi, "Luigi");
         }
 
         private void Pb_Toad_Click(object? sender, EventArgs e)
         {
-            
+            Toad.chosenCharacters(pb_Toad, "Toad");
         }
 
         private void Pb_Waluigi_Click(object? sender, EventArgs e)
         {
-            
+            Waluigi.chosenCharacters(pb_Waluigi, "Waluigi");
         }
         #endregion
-
-       
 
     }
 }
