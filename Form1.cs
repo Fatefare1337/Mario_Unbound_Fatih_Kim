@@ -2,6 +2,7 @@ using Microsoft.VisualBasic.ApplicationServices;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
+using Timer = System.Windows.Forms.Timer;
 
 namespace Mario_Unbound
 {
@@ -45,9 +46,9 @@ namespace Mario_Unbound
         private bool goLeft = false;
         private bool goRight = false;
         // replaced jumpSpeed/jumping with vertical velocity
-        private int verticalVelocity = 0;
+        private int verticalMovement = 0;
         private int jumpForce = 20;
-        private int gravity = 1; // gravity applied each tick
+        private int gravity = 1; 
         private int playerSpeed = 10;
 
         public Form1()
@@ -55,8 +56,8 @@ namespace Mario_Unbound
             InitializeComponent();
             ClientSize = new Size(800, 500);
 
-            // Tastaturereignisse auf dem Formular aktivieren
-            KeyPreview = true; // Keypreview muss aktiviert sein, damit das Formular KeyDown/KeyUp empfängt, auch wenn andere Steuerelemente den Fokus haben
+         
+            
             KeyDown += Form1_KeyDown;
             KeyUp += Form1_KeyUp;
 
@@ -567,7 +568,7 @@ namespace Mario_Unbound
             if (File.Exists(file))
             {
 
-                var zeilen = File.ReadAllLines(file);
+                var zeilen = File.ReadAllLines(file); // ReadAllLines liest alle Zeilen der Textdatei und gibt sie als Array zurück.
                 foreach (var zeile in zeilen)
                 {
                     var benutzerDaten = zeile.Split('|'); // die Daten in der Textdatei sollten durch '|' getrennt sein, z.B. "Benutzername|Email|Passwort"; macht alles übersichtlicher
@@ -590,8 +591,7 @@ namespace Mario_Unbound
 
             
 
-            File.AppendAllText(file, $"{_profilUsername}|{_profilEmail}|{_profiPassword}{Environment.NewLine}");
-            MessageBox.Show("Registrierung erfolgreich!");
+            File.AppendAllText(file, $"{_profilUsername}|{_profilEmail}|{_profiPassword}"); // AppendAllText ==> erstellt die Datei, falls sie noch nicht ertellt wurde, und fügt die Daten am Ende der Datei hinzu. So werden bestehende Daten nicht überschrieben.
 
             txb_Password.Clear();
             txb_Email.Clear();
@@ -646,7 +646,7 @@ namespace Mario_Unbound
         {
             Controls.Clear();
             
-            // Boden erstellen oder wiederverwenden
+            // Boden erstellen bzw. wiederverwenden
             
             Boden = new Panel();
             Boden.BackColor = Color.Green;
@@ -665,10 +665,10 @@ namespace Mario_Unbound
             if (!Controls.Contains(player))
                 Controls.Add(player);
 
-            // Timer für Bewegung und Gravitation
+            // Game Timer 
             if (gameTimer == null)
             {
-                gameTimer = new System.Windows.Forms.Timer();
+                gameTimer = new Timer();
                 gameTimer.Interval = 20; // ~50 FPS
                 gameTimer.Tick += GameTimer_Tick;
             }
@@ -679,8 +679,6 @@ namespace Mario_Unbound
         {
             if (player == null || Boden == null) 
                 return;
-
-
 
             // Horizontalbewegung
             if (goLeft)
@@ -701,21 +699,21 @@ namespace Mario_Unbound
                 player.Left = ClientSize.Width - player.Width;
             }
             // Vertikale Bewegung: wende vertikale Geschwindigkeit und Gravitation an
-            player.Top += verticalVelocity;
-            verticalVelocity += gravity;
+            player.Top += verticalMovement;
+            verticalMovement += gravity;
 
             // Kollision mit Boden: wenn unter oder auf Boden, setze auf Boden und Null Velocity
             if (player.Bottom >= Boden.Top)
             {
                 player.Top = Boden.Top - player.Height;
-                verticalVelocity = 0;
+                verticalMovement = 0;
             }
 
             // Verhindere, dass Spieler aus dem Fenster nach oben verschwindet
             if (player.Top < 0)
             {
                 player.Top = 0;
-                verticalVelocity = Math.Max(0, verticalVelocity);
+                verticalMovement = 0;
             }
         }
 
@@ -732,10 +730,10 @@ namespace Mario_Unbound
 
             if ((e.KeyCode == Keys.Space || e.KeyCode == Keys.Up || e.KeyCode == Keys.W) && player != null && Boden != null)
             {
-                // Nur springen, wenn auf dem Boden (verticalVelocity == 0 und auf Boden)
+                // Nur springen, wenn auf dem Boden 
                 if (player.Bottom >= Boden.Top)
                 {
-                    verticalVelocity = -jumpForce; // nach oben: negative Geschwindigkeit
+                    verticalMovement = -jumpForce; // der Sprung selber
                 }
             }
         }
@@ -754,19 +752,19 @@ namespace Mario_Unbound
 
         private void Pb_MarioAuswahl_Click(object? sender, EventArgs e)
         {
-            // Baue Level zuerst auf, damit 'player' nicht null ist
+           
             AufbauLevel1();
 
             // pb vorbereiten (Bild und Layout)
             if (pb_Mario?.Image != null)
             {
                 pb.Image = pb_Mario.Image;
-                pb.SizeMode = PictureBoxSizeMode.Zoom;
-                pb.Dock = DockStyle.Fill;
+                pb.SizeMode = PictureBoxSizeMode.Zoom; // PictureBoxSizeMode.Zoom sorgt dafür, dass das Bild im PictureBox skaliert wird, ohne das Seitenverhältnis zu verzerren.
+                pb.Dock = DockStyle.Fill; // DockStyle.Fill sorgt dafür, dass das Bild den gesamten Bereich des PictureBox ausfüllt, unabhängig von der Größe des PictureBox.
             }
 
-            // pb erst hinzufügen, wenn player existiert
-            if (player != null && pb.Parent != player)
+            
+            if (player != null)
             {
                 player.Controls.Add(pb);
             }
