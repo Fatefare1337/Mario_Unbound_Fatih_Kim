@@ -8,7 +8,7 @@ namespace Mario_Unbound
 {
     /*
     * Kim stunden: ca. 9,5 Stunden
-    * Fatih stunden: ca. 11 Stunde
+    * Fatih stunden: ca. 11,5 Stunde
     *
     *probleme:
     *- bei email kann man kein @ dazuschreiben
@@ -32,8 +32,14 @@ namespace Mario_Unbound
         public int _currentLevel = 1;
         PictureBox pb = new PictureBox();
         
-        
-        private string file = "proildaten.txt";
+        // new: animation images
+        private Image runningGif;
+        private Image runningGifLeft; 
+        private Image idleImage; 
+        private string _currentAnimation = "";
+        private bool _wasLeftMovement = false;
+
+        private string _file = "proildaten.txt";
         Character Mario = new Character();
         Character Luigi = new Character();
         Character Toad = new Character();
@@ -42,22 +48,20 @@ namespace Mario_Unbound
         // Spieler- und Bewegungsfelder
         private Panel player;
         private Panel Boden;
-        private System.Windows.Forms.Timer gameTimer;
-        private bool goLeft = false;
-        private bool goRight = false;
+        private Timer gameTimer;
+        private bool _goLeft = false;
+        private bool _goRight = false;
         // replaced jumpSpeed/jumping with vertical velocity
-        private int verticalMovement = 0;
-        private int jumpForce = 20;
-        private int gravity = 1; 
-        private int playerSpeed = 10;
+        private int _verticalMovement = 0;
+        private int _jumpForce = 18;
+        private int _gravity = 1; 
+        private int _playerSpeed = 10;
 
         public Form1()
         {
             InitializeComponent();
             ClientSize = new Size(800, 500);
 
-         
-            
             KeyDown += Form1_KeyDown;
             KeyUp += Form1_KeyUp;
 
@@ -70,6 +74,43 @@ namespace Mario_Unbound
             #region Charaktere
 
             pb_Mario.Image = Image.FromFile("MarioAuswahl.png");
+            // set idleImage to a smaller standing sprite if available; fallback to pb_Mario.Image
+            idleImage = pb_Mario.Image;
+
+            // try to load running gif and left-running gif (or create flipped clone)
+            try
+            {
+                runningGif = Image.FromFile("Mario_running_full_life.gif");
+            }
+            catch (Exception)
+            {
+                runningGif = null;
+            }
+
+            try
+            {
+                runningGifLeft = Image.FromFile("Mario_running_full_life_left.gif");
+            }
+            catch (Exception)
+            {
+                // if explicit left gif not found, create flipped clone of runningGif if possible
+                try
+                {
+                    if (runningGif != null)
+                    {
+                        runningGifLeft = (Image)runningGif.Clone();
+                        runningGifLeft.RotateFlip(RotateFlipType.RotateNoneFlipX);
+                    }
+                    else
+                    {
+                        runningGifLeft = null;
+                    }
+                }
+                catch
+                {
+                    runningGifLeft = null;
+                }
+            }
 
             #endregion
 
@@ -565,10 +606,10 @@ namespace Mario_Unbound
             }
             //gemini code
             // Prüft, ob der Benutzername oder die E-Mail bereits in der Textdatei existiert
-            if (File.Exists(file))
+            if (File.Exists(_file))
             {
 
-                var zeilen = File.ReadAllLines(file); // ReadAllLines liest alle Zeilen der Textdatei und gibt sie als Array zurück.
+                var zeilen = File.ReadAllLines(_file); // ReadAllLines liest alle Zeilen der Textdatei und gibt sie als Array zurück.
                 foreach (var zeile in zeilen)
                 {
                     var benutzerDaten = zeile.Split('|'); // die Daten in der Textdatei sollten durch '|' getrennt sein, z.B. "Benutzername|Email|Passwort"; macht alles übersichtlicher
@@ -591,13 +632,11 @@ namespace Mario_Unbound
 
             
 
-            File.AppendAllText(file, $"{_profilUsername}|{_profilEmail}|{_profiPassword}"); // AppendAllText ==> erstellt die Datei, falls sie noch nicht ertellt wurde, und fügt die Daten am Ende der Datei hinzu. So werden bestehende Daten nicht überschrieben.
+            File.AppendAllText(_file, $"{_profilUsername}|{_profilEmail}|{_profiPassword}"); // AppendAllText ==> erstellt die Datei, falls sie noch nicht ertellt wurde, und fügt die Daten am Ende der Datei hinzu. So werden bestehende Daten nicht überschrieben.
 
             txb_Password.Clear();
             txb_Email.Clear();
             txb_Username.Clear();
-
-
 
             SignedIn = true;
             Profilpage();
@@ -681,13 +720,15 @@ namespace Mario_Unbound
                 return;
 
             // Horizontalbewegung
-            if (goLeft)
+            bool wasMovingHorizontally = _goLeft || _goRight;
+
+            if (_goLeft)
             {
-                player.Left -= playerSpeed;
+                player.Left -= _playerSpeed;
             }
-            if (goRight)
+            if (_goRight)
             {
-                player.Left += playerSpeed;
+                player.Left += _playerSpeed;
 
             }
             if (player.Left < 0)
@@ -698,22 +739,66 @@ namespace Mario_Unbound
             {
                 player.Left = ClientSize.Width - player.Width;
             }
+
+            // set animations based on horizontal movement
+            if (player.Controls.Contains(pb))
+            {
+                if (_goLeft)
+                {
+                    // play left-running gif when moving left
+                    if (runningGifLeft != null && _currentAnimation != "run_left")
+                    {
+                        pb.Image = runningGifLeft;
+                        _currentAnimation = "run_left";
+                        _wasLeftMovement = true;
+                    }
+                    else if (runningGifLeft == null && _currentAnimation != "idle" && _wasLeftMovement)
+                    {
+                        pb.Image = idleImage;
+                        _currentAnimation = "idle";
+                    }
+                }
+                else if (_goRight)
+                {
+                    // play original gif when moving right
+                    if (runningGif != null && _currentAnimation != "run_right")
+                    {
+                        pb.Image = runningGif;
+                        _currentAnimation = "run_right";
+                        _wasLeftMovement = false;
+                    }
+                    else if (runningGif == null && _currentAnimation != "idle" && _wasLeftMovement != true)
+                    {
+                        pb.Image = idleImage;
+                        _currentAnimation = "idle";
+                    }
+                }
+                else
+                {
+                    if (_currentAnimation != "idle")
+                    {
+                        pb.Image = idleImage;
+                        _currentAnimation = "idle";
+                    }
+                }
+            }
+
             // Vertikale Bewegung: wende vertikale Geschwindigkeit und Gravitation an
-            player.Top += verticalMovement;
-            verticalMovement += gravity;
+            player.Top += _verticalMovement;
+            _verticalMovement += _gravity;
 
             // Kollision mit Boden: wenn unter oder auf Boden, setze auf Boden und Null Velocity
             if (player.Bottom >= Boden.Top)
             {
                 player.Top = Boden.Top - player.Height;
-                verticalMovement = 0;
+                _verticalMovement = 0;
             }
 
             // Verhindere, dass Spieler aus dem Fenster nach oben verschwindet
             if (player.Top < 0)
             {
                 player.Top = 0;
-                verticalMovement = 0;
+                _verticalMovement = 0;
             }
         }
 
@@ -721,11 +806,11 @@ namespace Mario_Unbound
         {
             if (e.KeyCode == Keys.Left || e.KeyCode == Keys.A)
             {
-                goLeft = true;
+                _goLeft = true;
             }
             if (e.KeyCode == Keys.Right || e.KeyCode == Keys.D)
             {
-                goRight = true;
+                _goRight = true;
             }
 
             if ((e.KeyCode == Keys.Space || e.KeyCode == Keys.Up || e.KeyCode == Keys.W) && player != null && Boden != null)
@@ -733,7 +818,7 @@ namespace Mario_Unbound
                 // Nur springen, wenn auf dem Boden 
                 if (player.Bottom >= Boden.Top)
                 {
-                    verticalMovement = -jumpForce; // der Sprung selber
+                    _verticalMovement = -_jumpForce; // der Sprung selber
                 }
             }
         }
@@ -742,11 +827,11 @@ namespace Mario_Unbound
         {
             if (e.KeyCode == Keys.Left || e.KeyCode == Keys.A)
             {
-                goLeft = false;
+                _goLeft = false;
             }
             if (e.KeyCode == Keys.Right || e.KeyCode == Keys.D)
             {
-                goRight = false;
+                _goRight = false;
             }
         }
 
