@@ -8,7 +8,7 @@ using Timer = System.Windows.Forms.Timer;
 namespace Mario_Unbound
 {
     /*
-    * Kim stunden: ca. 9,5 Stunden
+    * Kim stunden: ca. 11,5 Stunden
     * Fatih stunden: ca. 12,5 Stunde
     *
     *probleme:
@@ -67,6 +67,7 @@ namespace Mario_Unbound
         private int _jumpForce = 18;
         private int _gravity = 1; 
         private int _playerSpeed = 10;
+        private bool _canJump = false;
 
         public Form1()
         {
@@ -899,17 +900,47 @@ namespace Mario_Unbound
 
             //Auf den panels bleiben
 
+            // Use previous vertical position to detect whether the player is landing on a block
+            int prevTop = player.Top - _verticalMovement; // position before applying current movement
+            int prevBottom = prevTop + player.Height;
+
             foreach (Panel block in flyingBlocks)
             {
-                // Wenn der Spieler den Block berührt
+                // check horizontal overlap first
+                bool horizontallyOverlapping = player.Right > block.Left && player.Left < block.Right;
+                if (!horizontallyOverlapping) continue;
+
+                // if bounding boxes intersect, resolve depending on where the player came from
                 if (player.Bounds.IntersectsWith(block.Bounds))
                 {
-                    // Wir prüfen: Fällt der Spieler gerade nach unten? 
-                    // Und ist seine Unterkante knapp über oder in der Oberkante des Blocks?
-                    if (_verticalMovement > 0 && player.Bottom <= block.Top + _verticalMovement + 5)
+                    // Landing on top of the block: previously below or at/above top, now overlapping its top
+                    if (prevBottom <= block.Top && player.Bottom >= block.Top)
                     {
                         player.Top = block.Top - player.Height;
-                        _verticalMovement = 0; // Schwerkraft stoppen
+                        _verticalMovement = 0;
+                    }
+                    // Hitting the block from below: previously below block bottom and now overlapping
+                    else if (prevTop >= block.Bottom && player.Top <= block.Bottom)
+                    {
+                        // place player just below the block and stop upward movement
+                        player.Top = block.Bottom;
+                        _verticalMovement = 0;
+                    }
+                    else
+                    {
+                        // fallback: if still intersecting, separate vertically based on minimal penetration
+                        int overlapTop = player.Bottom - block.Top; // positive if overlapping from top
+                        int overlapBottom = block.Bottom - player.Top; // positive if overlapping from bottom
+                        if (overlapTop > 0 && (overlapTop <= overlapBottom))
+                        {
+                            player.Top = block.Top - player.Height;
+                            _verticalMovement = 0;
+                        }
+                        else if (overlapBottom > 0)
+                        {
+                            player.Top = block.Bottom;
+                            _verticalMovement = 0;
+                        }
                     }
                 }
             }
@@ -920,6 +951,9 @@ namespace Mario_Unbound
                 player.Top = 0;
                 _verticalMovement = 0;
             }
+
+            // Update jump ability based on contact with floor or blocks
+            _canJump = IsOnGround();
 
             //im wasser versinken - NOCH GEPLANT
 
@@ -961,6 +995,26 @@ namespace Mario_Unbound
             }
         }
 
+        // Helper to determine if the player is standing on floor or any flying block
+        private bool IsOnGround()
+        {
+            if (player == null || floor == null) return false;
+
+            // Check floor contact (allow small tolerance)
+            if (Math.Abs(player.Bottom - floor.Top) <= 3) return true;
+
+            // Check flying blocks contact (feet overlap with block top and horizontally overlapping)
+            foreach (Panel block in flyingBlocks)
+            {
+                if (Math.Abs(player.Bottom - block.Top) <= 3 && player.Right > block.Left + 5 && player.Left < block.Right - 5)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private void Form1_KeyDown(object? sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Left || e.KeyCode == Keys.A)
@@ -972,25 +1026,13 @@ namespace Mario_Unbound
                 _goRight = true;
             }
 
-            if ((e.KeyCode == Keys.Space || e.KeyCode == Keys.Up || e.KeyCode == Keys.W) && player != null && floor != null)
-            {
-                // Nur springen, wenn auf dem Boden 
-                if (player.Bottom >= floor.Top)
-                {
-                    _verticalMovement = -_jumpForce; // der Sprung selber
-                }
-            }
-
-            //springen auf panels - gemini code
-            if (e.KeyCode == Keys.Left || e.KeyCode == Keys.A) _goLeft = true;
-            if (e.KeyCode == Keys.Right || e.KeyCode == Keys.D) _goRight = true;
-
+            // Nur springen, wenn Spieler Kontakt mit Boden oder einem fliegenden Block hat
             if ((e.KeyCode == Keys.Space || e.KeyCode == Keys.Up || e.KeyCode == Keys.W) && player != null)
             {
-                // Wenn _verticalMovement auf 0 ist, steht Mario entweder auf dem Boden oder einem Block
-                if (_verticalMovement == 0)
+                if (IsOnGround())
                 {
                     _verticalMovement = -_jumpForce;
+                    _canJump = false; // will be re-enabled by GameTimer when contact is detected again
                 }
             }
         }
