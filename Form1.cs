@@ -1,4 +1,5 @@
 using Microsoft.VisualBasic.ApplicationServices;
+using System;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
@@ -17,6 +18,7 @@ namespace Mario_Unbound
     *fortschritt zurücksetzt
     *alles muss auf englisch gemacht werden
     *abspeichern current level on account
+    *man kann von unten durch panel durchspringen, das sollte nicht sein
      */
     public partial class Form1 : Form
     {
@@ -28,6 +30,14 @@ namespace Mario_Unbound
         public string _profilUsername, _profilEmail, _profiPassword;
         TextBox txb_Username, txb_Email, txb_Password;
         PictureBox pb_Mario, pb_Luigi, pb_Toad, pb_Waluigi;
+        //für Levelaufbau
+        
+        public List <Panel> flyingBlocks = new List <Panel>();
+        bool touchfloor = true;
+        public List<Panel> waterPanels = new List<Panel>();
+        public List <Panel> enemyShots = new List <Panel>();
+
+
         
         public int _currentLevel = 1;
         PictureBox pb = new PictureBox();
@@ -47,7 +57,8 @@ namespace Mario_Unbound
 
         // Spieler- und Bewegungsfelder
         private Panel player;
-        private Panel Boden;
+        private Panel floor;
+        private Panel water;
         private Timer gameTimer;
         private bool _goLeft = false;
         private bool _goRight = false;
@@ -684,23 +695,108 @@ namespace Mario_Unbound
         public void AufbauLevel1()
         {
             Controls.Clear();
-            
+            ClientSize = new Size(1600, 500);
+
+
+
             // Boden erstellen bzw. wiederverwenden
             
-            Boden = new Panel();
-            Boden.BackColor = Color.Green;
-            if (!Controls.Contains(Boden)) 
-                Controls.Add(Boden);
-            Boden.Size = new Size(ClientSize.Width, 50);
-            Boden.Location = new Point(0, ClientSize.Height - Boden.Height);
+            floor = new Panel();
+            floor.BackColor = Color.Green;
+            if (!Controls.Contains(floor)) 
+                Controls.Add(floor);
+            floor.Size = new Size(ClientSize.Width, 50);
+            floor.Location = new Point(0, ClientSize.Height - floor.Height);
+
+            //Wasser erstellen 
+
+            Panel water = new Panel();
+            water.BackColor = Color.LightBlue;
+            water.Size = new Size(100, 25);
+            water.Location = new Point(200, 450);
+            this.Controls.Add(water);
+            water.BringToFront();
+            waterPanels.Add(water);
+
+            Panel water2 = new Panel();
+            water2.BackColor = Color.LightBlue;
+            water2.Size = new Size(300, 25);
+            water2.Location = new Point(600, 450);
+            this.Controls.Add(water2);
+            water2.BringToFront();
+            waterPanels.Add(water2);
+
+            Panel water3 = new Panel();
+            water3.BackColor = Color.LightBlue;
+            water3.Size = new Size(100, 25);
+            water3.Location = new Point(1000, 450);
+            this.Controls.Add(water3);
+            water3.BringToFront();
+            waterPanels.Add(water3);
+
+            //die fleigenden Blöcke erstelln
+
+            Panel block1 = new Panel();
+            block1.BackColor = Color.RosyBrown;
+            block1.Size = new Size(150, 30);
+            block1.Location = new Point(180, 300);
+            this.Controls.Add(block1);
+            flyingBlocks.Add(block1);
+
+            Panel block2 = new Panel();
+            block2.BackColor = Color.RosyBrown;
+            block2.Size = new Size(300, 30);
+            block2.Location = new Point(800, 300);
+            this.Controls.Add(block2);
+            flyingBlocks.Add(block2);
+
+            //NPC panel
+            Panel npc1 = new Panel();
+            npc1.BackColor = Color.GreenYellow;
+            npc1.Size = new Size(40, 60);
+            npc1.Location = new Point(200, 300 - block1.Height); //sollte noch dynamisch werden
+            Controls.Add(npc1);
+
+            Panel npc2 = new Panel();
+            npc2.BackColor = Color.GreenYellow;
+            npc2.Size = new Size(40, 60);
+            npc2.Location = new Point(400, 420); //sollte noch dynamisch werden
+            Controls.Add(npc2);
+
+            Panel npc3 = new Panel();
+            npc3.BackColor = Color.GreenYellow;
+            npc3.Size = new Size(40, 60);
+            npc3.Location = new Point(450, 420); //sollte noch dynamisch werden
+            Controls.Add(npc3);
+
+            Panel npc4 = new Panel();
+            npc4.BackColor = Color.GreenYellow;
+            npc4.Size = new Size(40, 60);
+            npc4.Location = new Point(950, 420); //sollte noch dynamisch werden
+            Controls.Add(npc4);
+
+            //gegner
+
+            Panel e1 = new Panel();
+            e1.BackColor = Color.IndianRed;
+            e1.Size = new Size(200, 200);
+            e1.Location = new Point(1400, 300); //sollte noch dynamisch werden
+            Controls.Add(e1);
+
+            //fireball
+
+            Fireball fireballE = new Fireball();
+            fireballE.BuildingFireball(Color.Orange);
+            fireballE.Location = new Point(e1.Left, e1.Top + (e1.Height / 2));
+            Controls.Add(fireballE);
 
             // Spielerpanel erstellen
-           
+
             player = new Panel();
 
             pb.SizeMode = PictureBoxSizeMode.Zoom;
             player.Size = new Size(40, 60);
-            player.Location = new Point(50, Boden.Top - player.Height);
+            player.Location = new Point(50, floor.Top - player.Height);
             if (!Controls.Contains(player))
                 Controls.Add(player);
 
@@ -716,7 +812,7 @@ namespace Mario_Unbound
 
         private void GameTimer_Tick(object? sender, EventArgs e)
         {
-            if (player == null || Boden == null) 
+            if (player == null || floor == null) 
                 return;
 
             // Horizontalbewegung
@@ -788,9 +884,9 @@ namespace Mario_Unbound
             _verticalMovement += _gravity;
 
             // Kollision mit Boden: wenn unter oder auf Boden, setze auf Boden und Null Velocity
-            if (player.Bottom >= Boden.Top)
+            if (player.Bottom >= floor.Top)
             {
-                player.Top = Boden.Top - player.Height;
+                player.Top = floor.Top - player.Height;
                 _verticalMovement = 0;
             }
 
@@ -799,6 +895,69 @@ namespace Mario_Unbound
             {
                 player.Top = 0;
                 _verticalMovement = 0;
+            }
+
+            //Auf den panels bleiben
+
+            foreach (Panel block in flyingBlocks)
+            {
+                // Wenn der Spieler den Block berührt
+                if (player.Bounds.IntersectsWith(block.Bounds))
+                {
+                    // Wir prüfen: Fällt der Spieler gerade nach unten? 
+                    // Und ist seine Unterkante knapp über oder in der Oberkante des Blocks?
+                    if (_verticalMovement > 0 && player.Bottom <= block.Top + _verticalMovement + 5)
+                    {
+                        player.Top = block.Top - player.Height;
+                        _verticalMovement = 0; // Schwerkraft stoppen
+                    }
+                }
+            }
+
+            // Verhindere, dass Spieler oben aus dem Bild fliegt
+            if (player.Top < 0)
+            {
+                player.Top = 0;
+                _verticalMovement = 0;
+            }
+
+            //im wasser versinken - NOCH GEPLANT
+
+            //feuerball gegener schießt
+           
+
+        }
+
+        // Hilfsmethode, damit der GameTimer übersichtlich bleibt
+        private void UpdateAnimations()
+        {
+            if (!player.Controls.Contains(pb)) return;
+
+            if (_goLeft)
+            {
+                if (runningGifLeft != null && _currentAnimation != "run_left")
+                {
+                    pb.Image = runningGifLeft;
+                    _currentAnimation = "run_left";
+                    _wasLeftMovement = true;
+                }
+            }
+            else if (_goRight)
+            {
+                if (runningGif != null && _currentAnimation != "run_right")
+                {
+                    pb.Image = runningGif;
+                    _currentAnimation = "run_right";
+                    _wasLeftMovement = false;
+                }
+            }
+            else
+            {
+                if (_currentAnimation != "idle")
+                {
+                    pb.Image = idleImage;
+                    _currentAnimation = "idle";
+                }
             }
         }
 
@@ -813,12 +972,25 @@ namespace Mario_Unbound
                 _goRight = true;
             }
 
-            if ((e.KeyCode == Keys.Space || e.KeyCode == Keys.Up || e.KeyCode == Keys.W) && player != null && Boden != null)
+            if ((e.KeyCode == Keys.Space || e.KeyCode == Keys.Up || e.KeyCode == Keys.W) && player != null && floor != null)
             {
                 // Nur springen, wenn auf dem Boden 
-                if (player.Bottom >= Boden.Top)
+                if (player.Bottom >= floor.Top)
                 {
                     _verticalMovement = -_jumpForce; // der Sprung selber
+                }
+            }
+
+            //springen auf panels - gemini code
+            if (e.KeyCode == Keys.Left || e.KeyCode == Keys.A) _goLeft = true;
+            if (e.KeyCode == Keys.Right || e.KeyCode == Keys.D) _goRight = true;
+
+            if ((e.KeyCode == Keys.Space || e.KeyCode == Keys.Up || e.KeyCode == Keys.W) && player != null)
+            {
+                // Wenn _verticalMovement auf 0 ist, steht Mario entweder auf dem Boden oder einem Block
+                if (_verticalMovement == 0)
+                {
+                    _verticalMovement = -_jumpForce;
                 }
             }
         }
