@@ -9,7 +9,7 @@ namespace Mario_Unbound
 {
     /*
     * Kim stunden: ca. 11,5 Stunden
-    * Fatih stunden: ca. 12,5 Stunde
+    * Fatih stunden: ca. 13,5 Stunde
     *
     *probleme:
     *- bei email kann man kein @ dazuschreiben
