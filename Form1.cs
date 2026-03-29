@@ -1,5 +1,6 @@
 using Microsoft.VisualBasic.ApplicationServices;
 using System;
+using System.Diagnostics.Tracing;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
@@ -9,7 +10,7 @@ namespace Mario_Unbound
 {
     /*
     * Kim stunden: ca. 11,5 Stunden
-    * Fatih stunden: ca. 13,5 Stunde
+    * Fatih stunden: ca. 15,5 Stunde
     *
     *probleme:
     *- bei email kann man kein @ dazuschreiben
@@ -37,12 +38,10 @@ namespace Mario_Unbound
         public List<Panel> waterPanels = new List<Panel>();
         public List <Panel> enemyShots = new List <Panel>();
 
-
-        
         public int _currentLevel = 1;
         PictureBox pb = new PictureBox();
         
-        // new: animation images
+        // Bilder / GIFs
         private Image runningGif;
         private Image runningGifLeft; 
         private Image idleImage; 
@@ -62,7 +61,19 @@ namespace Mario_Unbound
         private Timer gameTimer;
         private Timer enemyFireTimer;
         private Panel enemyE1;
+        // COPILOT
         private Dictionary<Panel, PointF> enemyShotVelocities = new Dictionary<Panel, PointF>();
+        // Projektile vom Spieler (mit hilfe vom Copilot)
+        public List<Panel> playerShots = new List<Panel>();
+        private Dictionary<Panel, PointF> playerShotVelocities = new Dictionary<Panel, PointF>();
+
+        // Leben vom "boss"
+        private int enemyE1Health = 50;
+        private Label enemyHealthLabel;
+
+        // Schuss cooldown (mit hilfe vom Copilot)
+        private DateTime _lastPlayerShot = DateTime.MinValue;
+        private readonly TimeSpan _playerShotCooldown = TimeSpan.FromMilliseconds(100);
         private bool _goLeft = false;
         private bool _goRight = false;
         private int _verticalMovement = 0;
@@ -70,7 +81,7 @@ namespace Mario_Unbound
         private int _gravity = 1; 
         private int _playerSpeed = 10;
         private bool _canJump = false;
-        // -1 = blocked moving left, 1 = blocked moving right, 0 = not blocked
+        // -1 = linke bewegung wird blockiert, 1 = rechte bewegung wird blockiert, 0 = nichts wird blockiert
         private int _blockedDirection = 0;
 
         public Form1()
@@ -667,14 +678,14 @@ namespace Mario_Unbound
         {
             if (string.IsNullOrEmpty(_profilUsername) || string.IsNullOrEmpty(_profilEmail) || string.IsNullOrEmpty(_profiPassword))
             {
-                MessageBox.Show("Bitte Name, Passwort und E-mail eingeben!");
+                MessageBox.Show(" Bitte Name, Passwort und E-mail eingeben!");
                 return;
-
-                //wenn passwort, email und benutzername passen, dann angemeldet auf true.
-                //Hier muss noch ein zweiter button hin
             }
 
-
+            // Hier muss noch die ‹berpr¸fung, ob die Anmeldedaten korrekt sind.
+            // Nach der ‹berpr¸fung:
+            _signedIn = true;
+            Profilpage();
         } //in anmeldung
 
         private void Btn_Back_Click(object? sender, EventArgs e)
@@ -792,18 +803,24 @@ namespace Mario_Unbound
             enemyE1.Location = new Point(1400, 300); //sollte noch dynamisch werden
             Controls.Add(enemyE1);
 
-            //fireball
+            // enemy health label above enemy
+            enemyHealthLabel = new Label();
+            enemyHealthLabel.AutoSize = true;
+            enemyHealthLabel.ForeColor = Color.White;
+            enemyHealthLabel.BackColor = Color.Transparent;
+            enemyHealthLabel.Top = enemyE1.Top - 20;
+            enemyHealthLabel.Left = enemyE1.Left;
+            enemyHealthLabel.Font = new Font(enemyHealthLabel.Font.FontFamily, 10, FontStyle.Bold);
+            enemyHealthLabel.Text = $"Enemy HP: {enemyE1Health}";
+            Controls.Add(enemyHealthLabel);
 
-            Fireball fireballE = new Fireball();
-            fireballE.BuildingFireball(Color.Orange);
-            fireballE.Location = new Point(enemyE1.Left, enemyE1.Top + (enemyE1.Height / 2));
-            Controls.Add(fireballE);
- 
+
+
             // enemy shooting timer: every 2.5 seconds spawn a red projectile aimed at player
             if (enemyFireTimer == null)
             {
                 enemyFireTimer = new Timer();
-                enemyFireTimer.Interval = 2500; // 2.5 seconds
+                enemyFireTimer.Interval = 1000; // 2.5 seconds
                 enemyFireTimer.Tick += EnemyFireTimer_Tick;
             }
                 enemyFireTimer.Start();
@@ -828,7 +845,7 @@ namespace Mario_Unbound
             gameTimer.Start();
         }
 
-        private void GameTimer_Tick(object? sender, EventArgs e)
+        private void GameTimer_Tick(object? sender, EventArgs e)  // COPILOT!!!
         {
             if (player == null || floor == null) 
                 return;
@@ -1057,7 +1074,7 @@ namespace Mario_Unbound
                         gameTimer?.Stop();
                         enemyFireTimer?.Stop();
 
-                        MessageBox.Show("Game Over! You were hit.");
+                        MessageBox.Show("Game Over! Der rote bˆse Monster hat dich besigt!");
 
                         // lˆschen aller gegnerischen Sch¸sse
                         foreach (var s in enemyShots.ToList())
@@ -1073,10 +1090,62 @@ namespace Mario_Unbound
                 }
             }
 
-            //im wasser versinken - NOCH GEPLANT
+            // Move player shots and check collisions with enemy
+            if (playerShots.Count > 0)
+            {
+                foreach (var playerShot in playerShots.ToList())
+                {
+                    if (!playerShotVelocities.TryGetValue(playerShot, out PointF pvel))
+                    {
+                        Controls.Remove(playerShot);
+                        playerShots.Remove(playerShot);
+                        playerShotVelocities.Remove(playerShot);
+                        continue;
+                    }
 
-           
-           
+                    playerShot.Left += (int)pvel.X;
+                    playerShot.Top += (int)pvel.Y;
+
+                    // entfernen, wenn auﬂerhalb des Bildschirms
+                    if (playerShot.Right < 0 || playerShot.Left > ClientSize.Width || playerShot.Bottom < 0 || playerShot.Top > ClientSize.Height)
+                    {
+                        Controls.Remove(playerShot);
+                        playerShots.Remove(playerShot);
+                        playerShotVelocities.Remove(playerShot);
+                        continue;
+                    }
+
+                    // wenn der Spieler den "Boss" trift.
+                    if (enemyE1 != null && playerShot.Bounds.IntersectsWith(enemyE1.Bounds))
+                    {
+                        // Projektil entfernen
+                        Controls.Remove(playerShot);
+                        playerShots.Remove(playerShot);
+                        playerShotVelocities.Remove(playerShot);
+
+                        // Gegnerische Gesundheit reduzieren
+                        enemyE1Health -= 1;
+                        if (enemyHealthLabel != null)
+                            enemyHealthLabel.Text = $"Enemy HP: {enemyE1Health}";
+
+                        if (enemyE1Health <= 0)
+                        {
+
+
+                            // Der gegner ist besiegt worden
+                            gameTimer?.Stop();
+                            enemyFireTimer?.Stop();
+                            Controls.Remove(enemyE1);
+                            if (enemyHealthLabel != null)
+                                Controls.Remove(enemyHealthLabel);
+                            enemyE1 = null;
+                            MessageBox.Show("Du hast gewonnen! Du hast den 'Boss' besigt! Wir hoffen, das Dir das spiel gefallen hat!", "SIEG!!!!!!", MessageBoxButtons.OK);
+                            Homepage();
+
+                        }
+                    }
+                }
+            }
 
         }
 
@@ -1122,7 +1191,35 @@ namespace Mario_Unbound
             enemyShotVelocities[enemyFireball] = new PointF(velocityX, velocityY);
         }
 
-      
+        
+        private void SpawnPlayerFireball()
+        {
+            if (player == null) 
+                return;
+
+            // Schuss cooldown (Copilot):
+            if (DateTime.UtcNow - _lastPlayerShot < _playerShotCooldown)
+                return;
+            
+            _lastPlayerShot = DateTime.UtcNow;
+            
+            Panel playerFireball = new Panel();
+            playerFireball.Size = new Size(16, 16);
+            playerFireball.BackColor = Color.OrangeRed;
+            int spawnX = player.Left + ( _wasLeftMovement ? -playerFireball.Width : player.Width );
+            int spawnY = player.Top + player.Height / 2 - playerFireball.Height / 2;
+            playerFireball.Location = new Point(spawnX, spawnY);
+            Controls.Add(playerFireball);
+            playerFireball.BringToFront();
+
+            float speed = 12;
+            float velocityX = _wasLeftMovement ? -speed : speed;
+            float velocityY = 0;
+            
+            playerShots.Add(playerFireball);
+            playerShotVelocities[playerFireball] = new PointF(velocityX, velocityY);
+        }
+
         // Checkt, ob der Spieler auf einem Boden (Boden oder fliegender Block) steht, um Springen zu ermˆglichen
         private bool IsOnGround()
         {
@@ -1164,6 +1261,12 @@ namespace Mario_Unbound
                     _verticalMovement = -_jumpForce;
                     _canJump = false; 
                 }
+            }
+
+            // Player shoot with E key
+            if (e.KeyCode == Keys.E)
+            {
+                SpawnPlayerFireball();
             }
         }
 
@@ -1211,7 +1314,7 @@ namespace Mario_Unbound
         {
             Toad.chosenCharacters(pb_Toad, "Toad");
         }
-
+        
         private void Pb_Waluigi_Click(object? sender, EventArgs e)
         {
             Waluigi.chosenCharacters(pb_Waluigi, "Waluigi");
