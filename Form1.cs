@@ -90,10 +90,11 @@ namespace Mario_Unbound
             #region Charaktere
 
             pb_Mario.Image = Image.FromFile("MarioAuswahl.png");
-            // set idleImage to a smaller standing sprite if available; fallback to pb_Mario.Image
+            // setzt das Idle-Bild auf das Auswahlbild, damit es angezeigt wird,
+            // wenn keine Animationen verfügbar sind oder abgespielt werden
             idleImage = pb_Mario.Image;
 
-            // try to load running gif and left-running gif (or create flipped clone)
+            
             try
             {
                 runningGif = Image.FromFile("Mario_running_full_life.gif");
@@ -109,7 +110,8 @@ namespace Mario_Unbound
             }
             catch (Exception)
             {
-                // if explicit left gif not found, create flipped clone of runningGif if possible
+                // Wenn das Laden des linken GIFs fehlschlägt, versuchen wir,
+                // es aus dem rechten GIF zu erstellen, indem wir es horizontal spiegeln
                 try
                 {
                     if (runningGif != null)
@@ -621,6 +623,8 @@ namespace Mario_Unbound
                 return;
             }
             //gemini code
+
+
             // Prüft, ob der Benutzername oder die E-Mail bereits in der Textdatei existiert
             if (File.Exists(_file))
             {
@@ -830,17 +834,18 @@ namespace Mario_Unbound
                 return;
 
             // Horizontalbewegung
-            bool wasMovingHorizontally = _goLeft || _goRight;
+            bool wasMovingHorizontally = _goLeft || _goRight; // wenn einer der beiden true ist, dann bewegt sich der Spieler horizontal
 
-            // Apply horizontal movement but respect blocked direction: if blocked to the left (-1), ignore left input; if blocked to the right (1), ignore right input
+            // setzt die horizontale Bewegung um, aber respektiert die blockierte Richtung:
+            // wenn nach links blockiert (-1), ignoriere die linke Eingabe; wenn nach rechts blockiert (1), ignoriere die rechte Eingabe. So wird verhindert, dass der Spieler in die Richtung weiterläuft, in die er gerade kollidiert ist.
             int appliedDeltaX = 0;
             if (_goLeft && _blockedDirection != -1) appliedDeltaX -= _playerSpeed;
             if (_goRight && _blockedDirection != 1) appliedDeltaX += _playerSpeed;
 
             player.Left += appliedDeltaX;
 
-            // keep within bounds
-             if (player.Left < 0)
+            // inerhalb der Fenstergrenzen bleiben
+            if (player.Left < 0)
              {
                  player.Left = 0;
              }
@@ -849,12 +854,12 @@ namespace Mario_Unbound
                  player.Left = ClientSize.Width - player.Width;
              }
 
-            // set animations based on horizontal movement
+            // animation bassierend auf die horizontale Bewegung setzen.
             if (player.Controls.Contains(pb))
             {
                 if (_goLeft)
                 {
-                    // play left-running gif when moving left
+                    
                     if (runningGifLeft != null && _currentAnimation != "run_left")
                     {
                         pb.Image = runningGifLeft;
