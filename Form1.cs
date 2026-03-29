@@ -22,7 +22,7 @@ namespace Mario_Unbound
      */
     public partial class Form1 : Form
     {
-        bool SignedIn = false;
+        bool _signedIn = false;
         ComboBox cmb_Profilpicture;
         PictureBox picture;
         PictureBox Logo;
@@ -33,7 +33,7 @@ namespace Mario_Unbound
         //für Levelaufbau
         
         public List <Panel> flyingBlocks = new List <Panel>();
-        bool touchfloor = true;
+            
         public List<Panel> waterPanels = new List<Panel>();
         public List <Panel> enemyShots = new List <Panel>();
 
@@ -60,14 +60,18 @@ namespace Mario_Unbound
         private Panel floor;
         private Panel water;
         private Timer gameTimer;
+        private Timer enemyFireTimer;
+        private Panel enemyE1;
+        private Dictionary<Panel, PointF> enemyShotVelocities = new Dictionary<Panel, PointF>();
         private bool _goLeft = false;
         private bool _goRight = false;
-        // replaced jumpSpeed/jumping with vertical velocity
         private int _verticalMovement = 0;
         private int _jumpForce = 18;
         private int _gravity = 1; 
         private int _playerSpeed = 10;
         private bool _canJump = false;
+        // -1 = blocked moving left, 1 = blocked moving right, 0 = not blocked
+        private int _blockedDirection = 0;
 
         public Form1()
         {
@@ -215,7 +219,7 @@ namespace Mario_Unbound
             BackToPage();
 
 
-            if (SignedIn == false)
+            if (_signedIn == false)
             {
 
 
@@ -433,7 +437,7 @@ namespace Mario_Unbound
 
             //- - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-            if (SignedIn == false)
+            if (_signedIn == false)
             {
                 Label lbl_Warning = new Label();
                 lbl_Warning.Text = "Bitte melden Sie sich an, um Ihren Stand zu speichern!";
@@ -650,7 +654,7 @@ namespace Mario_Unbound
             txb_Email.Clear();
             txb_Username.Clear();
 
-            SignedIn = true;
+            _signedIn = true;
             Profilpage();
 
         }  
@@ -767,29 +771,38 @@ namespace Mario_Unbound
             Panel npc3 = new Panel();
             npc3.BackColor = Color.GreenYellow;
             npc3.Size = new Size(40, 60);
-            npc3.Location = new Point(450, 420); //sollte noch dynamisch werden
+            npc3.Location = new Point(450, 420);
             Controls.Add(npc3);
 
             Panel npc4 = new Panel();
             npc4.BackColor = Color.GreenYellow;
             npc4.Size = new Size(40, 60);
-            npc4.Location = new Point(950, 420); //sollte noch dynamisch werden
+            npc4.Location = new Point(950, 420); 
             Controls.Add(npc4);
 
             //gegner
 
-            Panel e1 = new Panel();
-            e1.BackColor = Color.IndianRed;
-            e1.Size = new Size(200, 200);
-            e1.Location = new Point(1400, 300); //sollte noch dynamisch werden
-            Controls.Add(e1);
+            enemyE1 = new Panel();
+            enemyE1.BackColor = Color.IndianRed;
+            enemyE1.Size = new Size(200, 200);
+            enemyE1.Location = new Point(1400, 300); //sollte noch dynamisch werden
+            Controls.Add(enemyE1);
 
             //fireball
 
             Fireball fireballE = new Fireball();
             fireballE.BuildingFireball(Color.Orange);
-            fireballE.Location = new Point(e1.Left, e1.Top + (e1.Height / 2));
+            fireballE.Location = new Point(enemyE1.Left, enemyE1.Top + (enemyE1.Height / 2));
             Controls.Add(fireballE);
+ 
+            // enemy shooting timer: every 2.5 seconds spawn a red projectile aimed at player
+            if (enemyFireTimer == null)
+            {
+                enemyFireTimer = new Timer();
+                enemyFireTimer.Interval = 2500; // 2.5 seconds
+                enemyFireTimer.Tick += EnemyFireTimer_Tick;
+            }
+                enemyFireTimer.Start();
 
             // Spielerpanel erstellen
 
@@ -819,23 +832,22 @@ namespace Mario_Unbound
             // Horizontalbewegung
             bool wasMovingHorizontally = _goLeft || _goRight;
 
-            if (_goLeft)
-            {
-                player.Left -= _playerSpeed;
-            }
-            if (_goRight)
-            {
-                player.Left += _playerSpeed;
+            // Apply horizontal movement but respect blocked direction: if blocked to the left (-1), ignore left input; if blocked to the right (1), ignore right input
+            int appliedDeltaX = 0;
+            if (_goLeft && _blockedDirection != -1) appliedDeltaX -= _playerSpeed;
+            if (_goRight && _blockedDirection != 1) appliedDeltaX += _playerSpeed;
 
-            }
-            if (player.Left < 0)
-            {
-                player.Left = 0;
-            }
-            if (player.Right > ClientSize.Width)
-            {
-                player.Left = ClientSize.Width - player.Width;
-            }
+            player.Left += appliedDeltaX;
+
+            // keep within bounds
+             if (player.Left < 0)
+             {
+                 player.Left = 0;
+             }
+             if (player.Right > ClientSize.Width)
+             {
+                 player.Left = ClientSize.Width - player.Width;
+             }
 
             // set animations based on horizontal movement
             if (player.Controls.Contains(pb))
@@ -857,7 +869,7 @@ namespace Mario_Unbound
                 }
                 else if (_goRight)
                 {
-                    // play original gif when moving right
+                    
                     if (runningGif != null && _currentAnimation != "run_right")
                     {
                         pb.Image = runningGif;
@@ -900,37 +912,62 @@ namespace Mario_Unbound
 
             //Auf den panels bleiben
 
-            // Use previous vertical position to detect whether the player is landing on a block
-            int prevTop = player.Top - _verticalMovement; // position before applying current movement
+
+            // mit hilfe von copilot gemacht: Kollisionserkennung mit den fliegenden Blöcken, inklusive seitlicher Kollisionen, um das Durchdringen der Blöcke zu verhindern. Anhand der vorherigen vertikalen Position erkennen, ob der Spieler auf einem Block landet oder von unten gegen den Block stößt,
+            // und entsprechend positionieren und vertikale Geschwindigkeit auf Null setzen, um das Durchdringen zu verhindern.
+
+            // Anhand der vorherigen vertikalen Position erkennen, ob der Spieler auf einem Block landet
+            int prevTop = player.Top - _verticalMovement; // Ausgangsposition vor der aktuellen Bewegung
             int prevBottom = prevTop + player.Height;
+            // Vorherige horizontale Position berechnen, um seitliche Kollisionen zu erkennen
+            int prevLeft = player.Left - appliedDeltaX;
+            int prevRight = prevLeft + player.Width;
+
+
+
 
             foreach (Panel block in flyingBlocks)
-            {
-                // check horizontal overlap first
+             {
+                 //  überprüft zuerst die horizontale Überlappung, um unnötige vertikale Kollisionstests zu vermeiden
                 bool horizontallyOverlapping = player.Right > block.Left && player.Left < block.Right;
-                if (!horizontallyOverlapping) continue;
 
-                // if bounding boxes intersect, resolve depending on where the player came from
-                if (player.Bounds.IntersectsWith(block.Bounds))
+                //  als erstes die horizontale Überlappung überprüft, um unnötige vertikale Kollisionstests zu vermeiden. Wenn keine horizontale Überlappung vorliegt, kann der Spieler nicht auf dem Block landen oder von unten gegen den Block stoßen, daher werden vertikale Kollisionstests übersprungen. Wenn eine horizontale Überlappung vorliegt, wird dann die vertikale Überlappung überprüft,
+                //  festzustellen, ob der Spieler tatsächlich mit dem Block kollidiert.
+                bool verticallyOverlapping = player.Top < block.Bottom && player.Bottom > block.Top;
+
+                // bewegung rechts in den Block
+                if (prevRight <= block.Left && player.Right >= block.Left && verticallyOverlapping)
                 {
-                    // Landing on top of the block: previously below or at/above top, now overlapping its top
+                    // player wird direkt neben dem Block positioniert, um das Durchdringen zu verhindern
+                    player.Left = block.Left - player.Width;
+                    appliedDeltaX = 0;
+                    _blockedDirection = 1; // die rechte bewegung blockieren
+                }
+                // bewegung links in den Block
+                if (prevLeft >= block.Right && player.Left <= block.Right && verticallyOverlapping)
+                {
+                    player.Left = block.Right;
+                    appliedDeltaX = 0;
+                    _blockedDirection = -1; // die linke bewegung blockieren
+                }
+                else if (player.Bounds.IntersectsWith(block.Bounds))
+                {
+                    // vertikale bewegung kollidiert mit Block: entweder von oben drauf landen oder von unten gegen den Block stoßen. Anhand der vorherigen vertikalen Position erkennen, ob der Spieler auf einem Block landet oder von unten gegen den Block stößt,
+                    // und entsprechend positionieren und vertikale Geschwindigkeit auf Null setzen, um das Durchdringen zu verhindern.
                     if (prevBottom <= block.Top && player.Bottom >= block.Top)
                     {
                         player.Top = block.Top - player.Height;
                         _verticalMovement = 0;
                     }
-                    // Hitting the block from below: previously below block bottom and now overlapping
                     else if (prevTop >= block.Bottom && player.Top <= block.Bottom)
                     {
-                        // place player just below the block and stop upward movement
                         player.Top = block.Bottom;
                         _verticalMovement = 0;
                     }
                     else
                     {
-                        // fallback: if still intersecting, separate vertically based on minimal penetration
-                        int overlapTop = player.Bottom - block.Top; // positive if overlapping from top
-                        int overlapBottom = block.Bottom - player.Top; // positive if overlapping from bottom
+                        int overlapTop = player.Bottom - block.Top;
+                        int overlapBottom = block.Bottom - player.Top;
                         if (overlapTop > 0 && (overlapTop <= overlapBottom))
                         {
                             player.Top = block.Top - player.Height;
@@ -943,67 +980,155 @@ namespace Mario_Unbound
                         }
                     }
                 }
+             }
+
+            // mit hilfe von copilot gemacht:
+
+            // nach der Kollisionserkennung mit den Blöcken, überprüfe, ob der Spieler immer noch einen Block berührt, um die Blockierung der Bewegung aufrechtzuerhalten. Wenn nicht mehr berührt, Blockierung aufheben.
+            int touching = 0; // -1 linke berührung, 1 rechte berührung, 0 keine berührung
+            foreach (Panel block in flyingBlocks)
+            {
+                bool vertOverlap = player.Top < block.Bottom && player.Bottom > block.Top;
+                if (!vertOverlap) continue;
+
+                if (Math.Abs(player.Right - block.Left) <= 2)
+                {
+                    touching = 1;
+                    break;
+                }
+                if (Math.Abs(player.Left - block.Right) <= 2)
+                {
+                    touching = -1;
+                    break;
+                }
+            }
+            if (touching == 0)
+            {
+                _blockedDirection = 0; 
             }
 
             // Verhindere, dass Spieler oben aus dem Bild fliegt
-            if (player.Top < 0)
-            {
-                player.Top = 0;
-                _verticalMovement = 0;
-            }
+             if (player.Top < 0)
+             {
+                 player.Top = 0;
+                 _verticalMovement = 0;
+             }
 
-            // Update jump ability based on contact with floor or blocks
+            
             _canJump = IsOnGround();
+
+            // Mit hilfe vom Copilot gemacht: Bewegung der gegnerischen Schüsse und Kollisionserkennung mit Spieler
+            if (enemyShots.Count > 0)
+            {
+                // iterate over a copy to allow removal
+                foreach (var shot in enemyShots.ToList())
+                {
+                    if (!enemyShotVelocities.TryGetValue(shot, out PointF vel))
+                    {
+                        // keine Infomationen zur Geschwindigkeit des Schusses, also entfernen
+                        Controls.Remove(shot);
+                        enemyShots.Remove(shot);
+                        enemyShotVelocities.Remove(shot);
+                        continue;
+                    }
+
+                    // move
+                    shot.Left += (int)vel.X;
+                    shot.Top += (int)vel.Y;
+
+                    // löschen, wenn außerhalb des Bildschirms
+                    if (shot.Right < 0 || shot.Left > ClientSize.Width || shot.Bottom < 0 || shot.Top > ClientSize.Height)
+                    {
+                        Controls.Remove(shot);
+                        enemyShots.Remove(shot);
+                        enemyShotVelocities.Remove(shot);
+                        continue;
+                    }
+
+                    // wenn Spieler getroffen, dann Game Over (Fürs erste)
+                    if (player != null && shot.Bounds.IntersectsWith(player.Bounds))
+                    {
+                        
+                        gameTimer?.Stop();
+                        enemyFireTimer?.Stop();
+
+                        MessageBox.Show("Game Over! You were hit.");
+
+                        // löschen aller gegnerischen Schüsse
+                        foreach (var s in enemyShots.ToList())
+                        {
+                            Controls.Remove(s);
+                            enemyShotVelocities.Remove(s);
+                        }
+                        enemyShots.Clear();
+
+                        Homepage();
+                        return;
+                    }
+                }
+            }
 
             //im wasser versinken - NOCH GEPLANT
 
-            //feuerball gegener schießt
+           
            
 
         }
 
-        // Hilfsmethode, damit der GameTimer übersichtlich bleibt
-        private void UpdateAnimations()
+        private void EnemyFireTimer_Tick(object? sender, EventArgs e)
         {
-            if (!player.Controls.Contains(pb)) return;
+            if (enemyE1 == null)
+                return;
 
-            if (_goLeft)
+            // erstellt einen neuen feuerball, positioniert ihn in der Mitte des "Bosses".
+            Panel enemyFireball = new Panel();
+            enemyFireball.Size = new Size(20, 20);
+            enemyFireball.BackColor = Color.Red;
+            int spawnX = enemyE1.Left + enemyE1.Width / 2 - enemyFireball.Width / 2;
+            int spawnY = enemyE1.Top + enemyE1.Height / 2 - enemyFireball.Height / 2;
+            enemyFireball.Location = new Point(spawnX, spawnY);
+            Controls.Add(enemyFireball);
+
+
+
+            // VON COPLOT GEMACHT!!!!!!!!!
+
+
+            // Berechne die Geschwindigkeit in Richtung des aktuellen Spielerzentrums
+            float velocityX = 0, velocityY = 0;
+            float speed = 8; // pixels pro tick // eigentlich kommt nach der 8 ein "f", damit es als float erkannt wird und somit optimierter wird. fürs erste egal
+            if (player != null)
             {
-                if (runningGifLeft != null && _currentAnimation != "run_left")
+                float targetX = player.Left + player.Width / 2f;
+                float targetY = player.Top + player.Height / 2f;
+                float directionX = targetX - (spawnX + enemyFireball.Width/2f);
+                float directionY = targetY - (spawnY + enemyFireball.Height/2f);
+                float distansToPlayer = (float)Math.Sqrt(directionX * directionX + directionY * directionY);
+
+                // normalisiere die Richtung und multipliziere mit der gewünschten Geschwindigkeit, um die Geschwindigkeitskomponenten zu erhalten
+                if (distansToPlayer > 0.001)
                 {
-                    pb.Image = runningGifLeft;
-                    _currentAnimation = "run_left";
-                    _wasLeftMovement = true;
+                    velocityX = directionX / distansToPlayer * speed;
+                    velocityY = directionY / distansToPlayer * speed;
                 }
             }
-            else if (_goRight)
-            {
-                if (runningGif != null && _currentAnimation != "run_right")
-                {
-                    pb.Image = runningGif;
-                    _currentAnimation = "run_right";
-                    _wasLeftMovement = false;
-                }
-            }
-            else
-            {
-                if (_currentAnimation != "idle")
-                {
-                    pb.Image = idleImage;
-                    _currentAnimation = "idle";
-                }
-            }
+
+            enemyShots.Add(enemyFireball);
+            enemyShotVelocities[enemyFireball] = new PointF(velocityX, velocityY);
         }
 
-        // Helper to determine if the player is standing on floor or any flying block
+      
+        // Checkt, ob der Spieler auf einem Boden (Boden oder fliegender Block) steht, um Springen zu ermöglichen
         private bool IsOnGround()
         {
             if (player == null || floor == null) return false;
 
-            // Check floor contact (allow small tolerance)
-            if (Math.Abs(player.Bottom - floor.Top) <= 3) return true;
+            
+            // Checkt den Kontakt mit dem Boden (mit einer kleinen Toleranz)
+            if (Math.Abs(player.Bottom - floor.Top) <= 3) // Math.Abs sonst bricht alles.
+                return true;
 
-            // Check flying blocks contact (feet overlap with block top and horizontally overlapping)
+            // Checkt, ob die Füße des Spielers mit der Oberseite eines Blocks in Kontakt sind, und ob der Spieler horizontal über dem Block liegt (mit einer kleinen Toleranz von 5 Pixeln, um ein zu strenges Treffen zu vermeiden)
             foreach (Panel block in flyingBlocks)
             {
                 if (Math.Abs(player.Bottom - block.Top) <= 3 && player.Right > block.Left + 5 && player.Left < block.Right - 5)
@@ -1032,7 +1157,7 @@ namespace Mario_Unbound
                 if (IsOnGround())
                 {
                     _verticalMovement = -_jumpForce;
-                    _canJump = false; // will be re-enabled by GameTimer when contact is detected again
+                    _canJump = false; 
                 }
             }
         }
@@ -1051,7 +1176,6 @@ namespace Mario_Unbound
 
         private void Pb_MarioAuswahl_Click(object? sender, EventArgs e)
         {
-           
             AufbauLevel1();
 
             // pb vorbereiten (Bild und Layout)
