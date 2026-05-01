@@ -1,6 +1,8 @@
 using Microsoft.VisualBasic.ApplicationServices;
+using Microsoft.VisualBasic.Devices;
 using System;
-using System.Diagnostics.Tracing;
+using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
@@ -9,8 +11,8 @@ using Timer = System.Windows.Forms.Timer;
 namespace Mario_Unbound
 {
     /*
-    * Kim stunden: ca. 11,5 Stunden
-    * Fatih stunden: ca. 15,5 Stunde
+    * Kim stunden: ca. 12,5 Stunden
+    * Fatih stunden: ca. 13,5 Stunde
     *
     *probleme:
     *- bei email kann man kein @ dazuschreiben
@@ -19,7 +21,29 @@ namespace Mario_Unbound
     *fortschritt zurücksetzt
     *alles muss auf englisch gemacht werden
     *abspeichern current level on account
-    *man kann von unten durch panel durchspringen, das sollte nicht sein
+    *feuerbälle gehen durch panels. gewollt?
+    *vergrößerung von level ist ab und zu außerhalb bildchirm: richten bitte
+    *Zeile 738: spieler soll durch die lücke fallen, damit spielfeld größer ist, ohne bewegung
+    *gif hat weißen rand, bitte noch entfernen
+    *coins sammeln einbaun
+    *man kann durch npc durchlaufen, das nicht gut
+    *spieler kann noch nicht schießen
+    *gegner und npc brauchen noch ein aussehen statt nur blop
+    *wenn enemy2 getouched wird game over, außer wenn von oben getouched wird, dann wird enemy2 zerstört
+    *kleiner gegner soll sich bewegen
+    *gegner soll erst schießen wenn player in sichtfeld also auf gleicher ebene
+    *wenn fahne von spieler berührt soll level aufhören und levelanzahl auf 1 erhöht werden. Message box mit "yay" und dann zum nächsten level als option
+    *reden für npc fehlt noch
+    *hintergründe vielleicht noch einbauen?
+    *power updates bei npc kurz vor enemy
+    * Title mit coincounter und levelanzeige 
+    * fehler bei coins abfrage
+    * logik frage: wieso bei npcs - block1??? wieso funktioniert das nur so??
+    * mein running gif worked nid?
+    * Sicherstellen das man nicht ins ziel kann bevor boss tot is
+    * klasse enemy will n enemytype? is das unnütz?
+    * Liste für Enemy geht ned?
+    * bei AUFBAU LEVEL 3 fehlen noch di npcs
      */
     public partial class Form1 : Form
     {
@@ -27,24 +51,30 @@ namespace Mario_Unbound
         ComboBox cmb_Profilpicture;
         PictureBox picture;
         PictureBox Logo;
+        PictureBox Endflag;
         Button Btn_Start; Button Btn_Level; Button Btn_Team; Button Btn_Profil; Button Btn_Closing;
         public string _profilUsername, _profilEmail, _profiPassword;
         TextBox txb_Username, txb_Email, txb_Password;
         PictureBox pb_Mario, pb_Luigi, pb_Toad, pb_Waluigi;
         //für Levelaufbau
-        
-        public List <Panel> flyingBlocks = new List <Panel>();
-            
-        public List<Panel> waterPanels = new List<Panel>();
-        public List <Panel> enemyShots = new List <Panel>();
 
-        public int _currentLevel = 1;
+        public List<Panel> flyingBlocks = new List<Panel>();
+        public List<Panel> CoinsOnField = new List<Panel>();
+        public List<Panel> waterPanels = new List<Panel>();
+        public List<Panel> enemyShots = new List<Panel>();
+        //public List<Enemy> e = new List<Enemy>();
+
+
+
+
+        public int coinsCollected = 0;
+        public int _currentLevel = 3;
         PictureBox pb = new PictureBox();
-        
-        // Bilder / GIFs
+
+        // new: animation images
         private Image runningGif;
-        private Image runningGifLeft; 
-        private Image idleImage; 
+        private Image runningGifLeft;
+        private Image idleImage;
         private string _currentAnimation = "";
         private bool _wasLeftMovement = false;
 
@@ -56,38 +86,36 @@ namespace Mario_Unbound
 
         // Spieler- und Bewegungsfelder
         private Panel player;
+        private Panel floorbetween;
         private Panel floor;
         private Panel water;
         private Timer gameTimer;
         private Timer enemyFireTimer;
-        private Panel enemyE1;
-        // COPILOT
+        private Panel coins;
+        Enemy enemyE1 = new Enemy();
+        Enemy enemyE2 = new Enemy();
+        Enemy enemyE3 = new Enemy();
+        Enemy enemyE4 = new Enemy();
+        Enemy enemyE5 = new Enemy();
+
         private Dictionary<Panel, PointF> enemyShotVelocities = new Dictionary<Panel, PointF>();
-        // Projektile vom Spieler (mit hilfe vom Copilot)
-        public List<Panel> playerShots = new List<Panel>();
-        private Dictionary<Panel, PointF> playerShotVelocities = new Dictionary<Panel, PointF>();
-
-        // Leben vom "boss"
-        private int enemyE1Health = 50;
-        private Label enemyHealthLabel;
-
-        // Schuss cooldown (mit hilfe vom Copilot)
-        private DateTime _lastPlayerShot = DateTime.MinValue;
-        private readonly TimeSpan _playerShotCooldown = TimeSpan.FromMilliseconds(100);
         private bool _goLeft = false;
         private bool _goRight = false;
         private int _verticalMovement = 0;
         private int _jumpForce = 18;
-        private int _gravity = 1; 
+        private int _gravity = 1;
         private int _playerSpeed = 10;
         private bool _canJump = false;
-        // -1 = linke bewegung wird blockiert, 1 = rechte bewegung wird blockiert, 0 = nichts wird blockiert
+        // -1 = blocked moving left, 1 = blocked moving right, 0 = not blocked
         private int _blockedDirection = 0;
+
 
         public Form1()
         {
             InitializeComponent();
+            this.DoubleBuffered = true; // Verhindert Flackern
             ClientSize = new Size(800, 500);
+
 
             KeyDown += Form1_KeyDown;
             KeyUp += Form1_KeyUp;
@@ -105,7 +133,7 @@ namespace Mario_Unbound
             // wenn keine Animationen verfügbar sind oder abgespielt werden
             idleImage = pb_Mario.Image;
 
-            
+
             try
             {
                 runningGif = Image.FromFile("Mario_running_full_life.gif");
@@ -216,7 +244,7 @@ namespace Mario_Unbound
                 picture.Left = 30;
                 picture.Show();
             }
-        } 
+        }
 
         #region Methoden
         protected void Closing()
@@ -295,9 +323,9 @@ namespace Mario_Unbound
                 txb_Password.UseSystemPasswordChar = true;
 
 
-                
 
-               
+
+
 
                 //- - - - -  - - -  - - - - - - - - -  - - - - -  - - -   - - - - - - - - - - - - - - - - - - - - - - - - - - -  - -- - - -
 
@@ -316,7 +344,7 @@ namespace Mario_Unbound
                 //- - - - -  - - -  - - - - - - - - -  - - - - -  - - -   - - - - - - - - - - - - - - - - - - - - - - - - - - -  - -- - - -
 
 
-                
+
 
                 Button Btn_Anmelden = new Button();
 
@@ -400,9 +428,9 @@ namespace Mario_Unbound
 
             Btn_Start.Click += Btn_Start_Click;
 
-           
 
-            
+
+
             //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
             Btn_Team = new Button();
@@ -469,7 +497,7 @@ namespace Mario_Unbound
 
             //TODO:
             //Bilder /Character der Teammitglieder hinzufügen.
-            
+
             BackToPage();
 
             Label NameKim = new Label();
@@ -599,7 +627,7 @@ namespace Mario_Unbound
             pb_Waluigi.Click += Pb_Waluigi_Click;
         } //Charakterbilder ändern dann fertig
 
-        
+
 
         #endregion
 
@@ -619,7 +647,7 @@ namespace Mario_Unbound
             Teamseite();
         }
 
-       
+
 
         private void SignUp_Click(object? sender, EventArgs e)
         {
@@ -661,7 +689,7 @@ namespace Mario_Unbound
                 }
             }
 
-            
+
 
             File.AppendAllText(_file, $"{_profilUsername}|{_profilEmail}|{_profiPassword}"); // AppendAllText ==> erstellt die Datei, falls sie noch nicht ertellt wurde, und fügt die Daten am Ende der Datei hinzu. So werden bestehende Daten nicht überschrieben.
 
@@ -672,20 +700,20 @@ namespace Mario_Unbound
             _signedIn = true;
             Profilpage();
 
-        }  
+        }
 
         private void Btn_SignIn_Click(object? sender, EventArgs e)
         {
             if (string.IsNullOrEmpty(_profilUsername) || string.IsNullOrEmpty(_profilEmail) || string.IsNullOrEmpty(_profiPassword))
             {
-                MessageBox.Show(" Bitte Name, Passwort und E-mail eingeben!");
+                MessageBox.Show("Bitte Name, Passwort und E-mail eingeben!");
                 return;
+
+                //wenn passwort, email und benutzername passen, dann angemeldet auf true.
+                //Hier muss noch ein zweiter button hin
             }
 
-            // Hier muss noch die Überprüfung, ob die Anmeldedaten korrekt sind.
-            // Nach der Überprüfung:
-            _signedIn = true;
-            Profilpage();
+
         } //in anmeldung
 
         private void Btn_Back_Click(object? sender, EventArgs e)
@@ -712,36 +740,45 @@ namespace Mario_Unbound
 
         #region Mitgame
 
+
+
+
+
+
+
+
         public void AufbauLevel1()
         {
             Controls.Clear();
-            ClientSize = new Size(1600, 500);
+            ClientSize = new Size(1800, 800);
 
+            floorbetween = new Panel();
+            floorbetween.BackColor = Color.Green;
+            if (!Controls.Contains(floorbetween))
+                Controls.Add(floorbetween);
+            floorbetween.Size = new Size(ClientSize.Width, 50);
+            floorbetween.Location = new Point(0 - 120, ClientSize.Height / 2 - 30);
 
-
-            // Boden erstellen bzw. wiederverwenden
-            
             floor = new Panel();
             floor.BackColor = Color.Green;
-            if (!Controls.Contains(floor)) 
+            if (!Controls.Contains(floor))
                 Controls.Add(floor);
             floor.Size = new Size(ClientSize.Width, 50);
-            floor.Location = new Point(0, ClientSize.Height - floor.Height);
+            floor.Location = new Point(0, ClientSize.Height - 50);
 
-            //Wasser erstellen 
 
             Panel water = new Panel();
             water.BackColor = Color.LightBlue;
             water.Size = new Size(100, 25);
-            water.Location = new Point(200, 450);
+            water.Location = new Point(200, ClientSize.Height / 2 - 30);
             this.Controls.Add(water);
             water.BringToFront();
             waterPanels.Add(water);
 
             Panel water2 = new Panel();
             water2.BackColor = Color.LightBlue;
-            water2.Size = new Size(300, 25);
-            water2.Location = new Point(600, 450);
+            water2.Size = new Size(400, 25);
+            water2.Location = new Point(600, ClientSize.Height / 2 - 30);
             this.Controls.Add(water2);
             water2.BringToFront();
             waterPanels.Add(water2);
@@ -749,81 +786,106 @@ namespace Mario_Unbound
             Panel water3 = new Panel();
             water3.BackColor = Color.LightBlue;
             water3.Size = new Size(100, 25);
-            water3.Location = new Point(1000, 450);
+            water3.Location = new Point(1300, ClientSize.Height / 2 - 30);
             this.Controls.Add(water3);
             water3.BringToFront();
             waterPanels.Add(water3);
 
-            //die fleigenden Blöcke erstelln
-
+            //hier soll ein coin rauf
             Panel block1 = new Panel();
             block1.BackColor = Color.RosyBrown;
             block1.Size = new Size(150, 30);
-            block1.Location = new Point(180, 300);
+            block1.Location = new Point(180, ClientSize.Height / 2 - 300);
             this.Controls.Add(block1);
             flyingBlocks.Add(block1);
 
             Panel block2 = new Panel();
             block2.BackColor = Color.RosyBrown;
-            block2.Size = new Size(300, 30);
-            block2.Location = new Point(800, 300);
+            block2.Size = new Size(150, 30);
+            block2.Location = new Point(230, ClientSize.Height / 2 - 150);
             this.Controls.Add(block2);
             flyingBlocks.Add(block2);
+
+            Panel block3 = new Panel();
+            block3.BackColor = Color.RosyBrown;
+            block3.Size = new Size(150, 30);
+            block3.Location = new Point(850, ClientSize.Height / 2 - 170);
+            this.Controls.Add(block3);
+            flyingBlocks.Add(block3);
+
+            //coins
+
+
+
+            Panel coins = new Panel();
+            coins.BackColor = Color.Gold;
+            coins.Size = new Size(20, 20);
+            coins.Location = new Point(/*spawnpoint gesucht*/);
+            CoinsOnField.Add(coins);
+            Controls.Add(coins);
+
+            //if (player.Location == coins.Location)
+            //{
+            //    coinsCollected++;
+            //    Controls.Remove(coins);
+            //}
+
 
             //NPC panel
             Panel npc1 = new Panel();
             npc1.BackColor = Color.GreenYellow;
             npc1.Size = new Size(40, 60);
-            npc1.Location = new Point(200, 300 - block1.Height); //sollte noch dynamisch werden
+            npc1.Location = new Point(350, ClientSize.Height / 2 - floorbetween.Height - block1.Height); //sollte noch dynamisch werden
             Controls.Add(npc1);
 
             Panel npc2 = new Panel();
             npc2.BackColor = Color.GreenYellow;
             npc2.Size = new Size(40, 60);
-            npc2.Location = new Point(400, 420); //sollte noch dynamisch werden
+            npc2.Location = new Point(1400, ClientSize.Height / 2 - floorbetween.Height - block1.Height); //sollte noch dynamisch werden
             Controls.Add(npc2);
 
             Panel npc3 = new Panel();
             npc3.BackColor = Color.GreenYellow;
             npc3.Size = new Size(40, 60);
-            npc3.Location = new Point(450, 420);
+            npc3.Location = new Point(1450, ClientSize.Height / 2 - floorbetween.Height - block1.Height);
             Controls.Add(npc3);
 
             Panel npc4 = new Panel();
             npc4.BackColor = Color.GreenYellow;
             npc4.Size = new Size(40, 60);
-            npc4.Location = new Point(950, 420); 
+            npc4.Location = new Point(1400, ClientSize.Height - floor.Height - npc4.Height);
             Controls.Add(npc4);
 
             //gegner
 
-            enemyE1 = new Panel();
             enemyE1.BackColor = Color.IndianRed;
             enemyE1.Size = new Size(200, 200);
-            enemyE1.Location = new Point(1400, 300); //sollte noch dynamisch werden
+            enemyE1.Location = new Point(100, ClientSize.Height - floor.Height - enemyE1.Height);
             Controls.Add(enemyE1);
 
-            // enemy health label above enemy
-            enemyHealthLabel = new Label();
-            enemyHealthLabel.AutoSize = true;
-            enemyHealthLabel.ForeColor = Color.White;
-            enemyHealthLabel.BackColor = Color.Transparent;
-            enemyHealthLabel.Top = enemyE1.Top - 20;
-            enemyHealthLabel.Left = enemyE1.Left;
-            enemyHealthLabel.Font = new Font(enemyHealthLabel.Font.FontFamily, 10, FontStyle.Bold);
-            enemyHealthLabel.Text = $"Enemy HP: {enemyE1Health}";
-            Controls.Add(enemyHealthLabel);
+
+            enemyE2.BackColor = Color.IndianRed;
+            enemyE2.Size = new Size(40, 60);
+            enemyE2.Location = new Point(800, ClientSize.Height - floor.Height - enemyE2.Height);
+            Controls.Add(enemyE2);
 
 
+
+            //fireball
+
+            Fireball fireballE = new Fireball();
+            fireballE.BuildingFireball(Color.Orange);
+            fireballE.Location = new Point(enemyE1.Left, enemyE1.Top + (enemyE1.Height / 2));
+            Controls.Add(fireballE);
 
             // enemy shooting timer: every 2.5 seconds spawn a red projectile aimed at player
             if (enemyFireTimer == null)
             {
                 enemyFireTimer = new Timer();
-                enemyFireTimer.Interval = 1000; // 2.5 seconds
+                enemyFireTimer.Interval = 2500; // 2.5 seconds
                 enemyFireTimer.Tick += EnemyFireTimer_Tick;
             }
-                enemyFireTimer.Start();
+            enemyFireTimer.Start();
 
             // Spielerpanel erstellen
 
@@ -831,7 +893,7 @@ namespace Mario_Unbound
 
             pb.SizeMode = PictureBoxSizeMode.Zoom;
             player.Size = new Size(40, 60);
-            player.Location = new Point(50, floor.Top - player.Height);
+            player.Location = new Point(50, floorbetween.Top - player.Height);
             if (!Controls.Contains(player))
                 Controls.Add(player);
 
@@ -843,11 +905,377 @@ namespace Mario_Unbound
                 gameTimer.Tick += GameTimer_Tick;
             }
             gameTimer.Start();
+
+            //endfahne
+
+            Endflag = new PictureBox();
+            Endflag.Image = Image.FromFile("Fahne.jpg");
+            Endflag.SizeMode = PictureBoxSizeMode.StretchImage;
+            Endflag.Location = new Point(0, floor.Top - Endflag.Height * 3);
+            Endflag.Size = new Size(80, 150);
+            Controls.Add(Endflag);
+
+
         }
 
-        private void GameTimer_Tick(object? sender, EventArgs e)  // COPILOT!!!
+        public void AufbauLevel2()
         {
-            if (player == null || floor == null) 
+            Controls.Clear();
+            ClientSize = new Size(1800, 800);
+
+            floorbetween = new Panel();
+            floorbetween.BackColor = Color.Green;
+            if (!Controls.Contains(floorbetween))
+                Controls.Add(floorbetween);
+            floorbetween.Size = new Size(ClientSize.Width, 50);
+            floorbetween.Location = new Point(0 - 120, ClientSize.Height / 2 - 30);
+
+            floor = new Panel();
+            floor.BackColor = Color.Green;
+            if (!Controls.Contains(floor))
+                Controls.Add(floor);
+            floor.Size = new Size(ClientSize.Width, 50);
+            floor.Location = new Point(0, ClientSize.Height - 50);
+
+            Panel water = new Panel();
+            water.BackColor = Color.LightBlue;
+            water.Size = new Size(350, 25);
+            water.Location = new Point(600, ClientSize.Height / 2 - 30);
+            this.Controls.Add(water);
+            water.BringToFront();
+            waterPanels.Add(water);
+
+
+
+            //hier soll n coin drunter
+            Panel block1 = new Panel();
+            block1.BackColor = Color.RosyBrown;
+            block1.Size = new Size(200, 30);
+            block1.Location = new Point(200, ClientSize.Height / 2 - 120);
+            this.Controls.Add(block1);
+
+            flyingBlocks.Add(block1);
+
+            //hier soll ein coin drauf
+            Panel block2 = new Panel();
+            block2.BackColor = Color.RosyBrown;
+            block2.Size = new Size(250, 30);
+            block2.Location = new Point(1200, ClientSize.Height / 2 - 150);
+            this.Controls.Add(block2);
+            flyingBlocks.Add(block2);
+
+            Panel block3 = new Panel();
+            block3.BackColor = Color.RosyBrown;
+            block3.Size = new Size(100, 50);
+            block3.Location = new Point(1400, ClientSize.Height / 2 - floorbetween.Height - block1.Height);
+            this.Controls.Add(block3);
+            flyingBlocks.Add(block3);
+
+            Panel block4 = new Panel();
+            block4.BackColor = Color.RosyBrown;
+            block4.Size = new Size(150, 170);
+            block4.Location = new Point(850, ClientSize.Height - 170);
+            this.Controls.Add(block4);
+            flyingBlocks.Add(block4);
+
+            //coins
+
+            Panel coins = new Panel();
+            coins.BackColor = Color.Gold;
+            coins.Size = new Size(20, 20);
+            coins.Location = new Point(250, ClientSize.Height / 2 - floorbetween.Height);
+            CoinsOnField.Add(coins);
+            Controls.Add(coins);
+
+
+
+            //if (player.Location == coins.Location)
+            //{
+            //    coinsCollected++;
+            //    Controls.Remove(coins);
+            //}
+
+
+            //NPC panel
+            Panel npc1 = new Panel();
+            npc1.BackColor = Color.GreenYellow;
+            npc1.Size = new Size(40, 60);
+            npc1.Location = new Point(120, ClientSize.Height / 2 - floorbetween.Height - block1.Height); //sollte noch dynamisch werden
+            Controls.Add(npc1);
+
+            //hier dahinter nen coin
+            Panel npc2 = new Panel();
+            npc2.BackColor = Color.GreenYellow;
+            npc2.Size = new Size(40, 60);
+            npc2.Location = new Point(200, ClientSize.Height / 2 - floorbetween.Height - block1.Height); //sollte noch dynamisch werden
+            Controls.Add(npc2);
+
+            Panel npc3 = new Panel();
+            npc3.BackColor = Color.GreenYellow;
+            npc3.Size = new Size(40, 60);
+            npc3.Location = new Point(1500, ClientSize.Height / 2 - floorbetween.Height - block1.Height);
+            Controls.Add(npc3);
+
+            Panel npc4 = new Panel();
+            npc4.BackColor = Color.GreenYellow;
+            npc4.Size = new Size(40, 60);
+            npc4.Location = new Point(1400, ClientSize.Height - floor.Height - npc4.Height);
+            Controls.Add(npc4);
+
+            //gegner
+
+            enemyE1.BackColor = Color.IndianRed;
+            enemyE1.Size = new Size(200, 200);
+            enemyE1.Location = new Point(100, ClientSize.Height - floor.Height - enemyE1.Height);
+            Controls.Add(enemyE1);
+
+
+            enemyE2.BackColor = Color.IndianRed;
+            enemyE2.Size = new Size(40, 60);
+            enemyE2.Location = new Point(1200, ClientSize.Height - floor.Height - enemyE2.Height);
+            Controls.Add(enemyE2);
+
+            enemyE3.BackColor = Color.IndianRed;
+            enemyE3.Size = new Size(140, 140);
+            enemyE3.Location = new Point(400, ClientSize.Height - floor.Height - enemyE2.Height);
+            Controls.Add(enemyE3);
+
+
+
+            //fireball
+
+            Fireball fireballE = new Fireball();
+            fireballE.BuildingFireball(Color.Orange);
+            fireballE.Location = new Point(enemyE1.Left, enemyE1.Top + (enemyE1.Height / 2));
+            Controls.Add(fireballE);
+
+            Fireball fireballE2 = new Fireball();
+            fireballE2.BuildingFireball(Color.Orange);
+            fireballE2.Location = new Point(enemyE3.Left, enemyE3.Top + (enemyE3.Height / 2));
+            Controls.Add(fireballE2);
+
+            // enemy shooting timer: every 2.5 seconds spawn a red projectile aimed at player
+            if (enemyFireTimer == null)
+            {
+                enemyFireTimer = new Timer();
+                enemyFireTimer.Interval = 2500; // 2.5 seconds
+                enemyFireTimer.Tick += EnemyFireTimer_Tick;
+            }
+            enemyFireTimer.Start();
+
+            // Spielerpanel erstellen
+
+            player = new Panel();
+
+            pb.SizeMode = PictureBoxSizeMode.Zoom;
+            player.Size = new Size(40, 60);
+            player.Location = new Point(50, floorbetween.Top - player.Height);
+            if (!Controls.Contains(player))
+                Controls.Add(player);
+
+            // Game Timer 
+            if (gameTimer == null)
+            {
+                gameTimer = new Timer();
+                gameTimer.Interval = 20; // ~50 FPS
+                gameTimer.Tick += GameTimer_Tick;
+            }
+            gameTimer.Start();
+
+            //endfahne
+
+            Endflag = new PictureBox();
+            Endflag.Image = Image.FromFile("Fahne.jpg");
+            Endflag.SizeMode = PictureBoxSizeMode.StretchImage;
+            Endflag.Location = new Point(0, floor.Top - Endflag.Height * 3);
+            Endflag.Size = new Size(80, 150);
+            Controls.Add(Endflag);
+
+
+
+        }
+
+        public void AufbauLevel3()
+        {
+            Controls.Clear();
+            ClientSize = new Size(1800, 800);
+
+            floorbetween = new Panel();
+            floorbetween.BackColor = Color.Green;
+            if (!Controls.Contains(floorbetween))
+                Controls.Add(floorbetween);
+            floorbetween.Size = new Size(ClientSize.Width, 50);
+            floorbetween.Location = new Point(0 - 120, ClientSize.Height / 2 - 30);
+
+            floor = new Panel();
+            floor.BackColor = Color.Green;
+            if (!Controls.Contains(floor))
+                Controls.Add(floor);
+            floor.Size = new Size(ClientSize.Width, 50);
+            floor.Location = new Point(0, ClientSize.Height - 50);
+
+            //Panel water = new Panel();
+            //water.BackColor = Color.LightBlue;
+            //water.Size = new Size(350, 25);
+            //water.Location = new Point(600, ClientSize.Height / 2 - 30);
+            //this.Controls.Add(water);
+            //water.BringToFront();
+            //waterPanels.Add(water);
+
+
+
+
+            Panel block1 = new Panel();
+            block1.BackColor = Color.RosyBrown;
+            block1.Size = new Size(200, 30);
+            block1.Location = new Point(1600, ClientSize.Height / 2 - 200);
+            this.Controls.Add(block1);
+
+            flyingBlocks.Add(block1);
+
+            //hier soll ein coin drauf
+            Panel block2 = new Panel();
+            block2.BackColor = Color.RosyBrown;
+            block2.Size = new Size(250, 30);
+            block2.Location = new Point(ClientSize.Width - enemyE1.Width, ClientSize.Height - floor.Height - enemyE1.Height - block2.Height * 2);
+            this.Controls.Add(block2);
+            flyingBlocks.Add(block2);
+
+
+
+
+            //coins
+
+            Panel coins = new Panel();
+            coins.BackColor = Color.Gold;
+            coins.Size = new Size(20, 20);
+            coins.Location = new Point(/*noch zu plazieren*/);
+            CoinsOnField.Add(coins);
+            Controls.Add(coins);
+
+
+
+            //if (player.Location == coins.Location)
+            //{
+            //    coinsCollected++;
+            //    Controls.Remove(coins);
+            //}
+
+
+            ////NPC panel
+            //Panel npc1 = new Panel();
+            //npc1.BackColor = Color.GreenYellow;
+            //npc1.Size = new Size(40, 60);
+            //npc1.Location = new Point(120, ClientSize.Height / 2 - floorbetween.Height - block1.Height); //sollte noch dynamisch werden
+            //Controls.Add(npc1);
+
+            ////hier dahinter nen coin
+            //Panel npc2 = new Panel();
+            //npc2.BackColor = Color.GreenYellow;
+            //npc2.Size = new Size(40, 60);
+            //npc2.Location = new Point(200, ClientSize.Height / 2 - floorbetween.Height - block1.Height); //sollte noch dynamisch werden
+            //Controls.Add(npc2);
+
+            //Panel npc3 = new Panel();
+            //npc3.BackColor = Color.GreenYellow;
+            //npc3.Size = new Size(40, 60);
+            //npc3.Location = new Point(1500, ClientSize.Height / 2 - floorbetween.Height - block1.Height);
+            //Controls.Add(npc3);
+
+            //Panel npc4 = new Panel();
+            //npc4.BackColor = Color.GreenYellow;
+            //npc4.Size = new Size(40, 60);
+            //npc4.Location = new Point(1400, ClientSize.Height - floor.Height - npc4.Height);
+            //Controls.Add(npc4);
+
+            //gegner
+
+            enemyE1.BackColor = Color.IndianRed;
+            enemyE1.Size = new Size(150, 150);
+            enemyE1.Location = new Point(ClientSize.Width - enemyE1.Width, ClientSize.Height - floor.Height - enemyE1.Height);
+            Controls.Add(enemyE1);
+
+
+            enemyE2.BackColor = Color.IndianRed;
+            enemyE2.Size = new Size(40, 60);
+            enemyE2.Location = new Point(250, ClientSize.Height / 2 - floorbetween.Height - block1.Height);
+            Controls.Add(enemyE2);
+
+            enemyE3.BackColor = Color.IndianRed;
+            enemyE3.Size = new Size(40, 60);
+            enemyE3.Location = new Point(400, ClientSize.Height / 2 - floorbetween.Height - block1.Height);
+            Controls.Add(enemyE3);
+
+            enemyE4.BackColor = Color.IndianRed;
+            enemyE4.Size = new Size(40, 60);
+            enemyE4.Location = new Point(780, ClientSize.Height - floor.Height - enemyE2.Height);
+            Controls.Add(enemyE4);
+
+            enemyE5.BackColor = Color.IndianRed;
+            enemyE5.Size = new Size(40, 60);
+            enemyE5.Location = new Point(670, ClientSize.Height - floor.Height - enemyE2.Height);
+            Controls.Add(enemyE5);
+
+            //fireball
+
+            Fireball fireballE = new Fireball();
+            fireballE.BuildingFireball(Color.Orange);
+            fireballE.Location = new Point(enemyE1.Left, enemyE1.Top + (enemyE1.Height / 2));
+            Controls.Add(fireballE);
+
+            Fireball fireballE2 = new Fireball();
+            fireballE2.BuildingFireball(Color.Orange);
+            fireballE2.Location = new Point(enemyE3.Left, enemyE3.Top + (enemyE3.Height / 2));
+            Controls.Add(fireballE2);
+
+            // enemy shooting timer: every 2.5 seconds spawn a red projectile aimed at player
+            if (enemyFireTimer == null)
+            {
+                enemyFireTimer = new Timer();
+                enemyFireTimer.Interval = 2500; // 2.5 seconds
+                enemyFireTimer.Tick += EnemyFireTimer_Tick;
+            }
+            enemyFireTimer.Start();
+
+            // Spielerpanel erstellen
+
+            player = new Panel();
+
+            pb.SizeMode = PictureBoxSizeMode.Zoom;
+            player.Size = new Size(40, 60);
+            player.Location = new Point(50, floorbetween.Top - player.Height);
+            if (!Controls.Contains(player))
+                Controls.Add(player);
+
+            // Game Timer 
+            if (gameTimer == null)
+            {
+                gameTimer = new Timer();
+                gameTimer.Interval = 20; // ~50 FPS
+                gameTimer.Tick += GameTimer_Tick;
+            }
+            gameTimer.Start();
+
+            //endfahne
+
+            Endflag = new PictureBox();
+            Endflag.Image = Image.FromFile("Fahne.jpg");
+            Endflag.SizeMode = PictureBoxSizeMode.StretchImage;
+            Endflag.Location = new Point(0, floor.Top - Endflag.Height * 3);
+            Endflag.Size = new Size(80, 150);
+            Controls.Add(Endflag);
+        }
+
+        public void AufbauLevelEnd()
+        {
+            Controls.Clear();
+            ClientSize = new Size(1800, 800);
+            // Level 4 könnte hier aufgebaut werden, z.B. mit anderen Plattformen, Gegnern, etc.
+        }
+
+        private void GameTimer_Tick(object? sender, EventArgs e)
+        {
+            if (player == null || floorbetween == null)
                 return;
 
             // Horizontalbewegung
@@ -863,20 +1291,20 @@ namespace Mario_Unbound
 
             // inerhalb der Fenstergrenzen bleiben
             if (player.Left < 0)
-             {
-                 player.Left = 0;
-             }
-             if (player.Right > ClientSize.Width)
-             {
-                 player.Left = ClientSize.Width - player.Width;
-             }
+            {
+                player.Left = 0;
+            }
+            if (player.Right > ClientSize.Width)
+            {
+                player.Left = ClientSize.Width - player.Width;
+            }
 
             // animation bassierend auf die horizontale Bewegung setzen.
             if (player.Controls.Contains(pb))
             {
                 if (_goLeft)
                 {
-                    
+
                     if (runningGifLeft != null && _currentAnimation != "run_left")
                     {
                         pb.Image = runningGifLeft;
@@ -891,7 +1319,7 @@ namespace Mario_Unbound
                 }
                 else if (_goRight)
                 {
-                    
+
                     if (runningGif != null && _currentAnimation != "run_right")
                     {
                         pb.Image = runningGif;
@@ -919,9 +1347,9 @@ namespace Mario_Unbound
             _verticalMovement += _gravity;
 
             // Kollision mit Boden: wenn unter oder auf Boden, setze auf Boden und Null Velocity
-            if (player.Bottom >= floor.Top)
+            if (player.Bottom >= floorbetween.Top)
             {
-                player.Top = floor.Top - player.Height;
+                player.Top = floorbetween.Top - player.Height;
                 _verticalMovement = 0;
             }
 
@@ -949,8 +1377,8 @@ namespace Mario_Unbound
 
 
             foreach (Panel block in flyingBlocks)
-             {
-                 //  überprüft zuerst die horizontale Überlappung, um unnötige vertikale Kollisionstests zu vermeiden
+            {
+                //  überprüft zuerst die horizontale Überlappung, um unnötige vertikale Kollisionstests zu vermeiden
                 bool horizontallyOverlapping = player.Right > block.Left && player.Left < block.Right;
 
                 //  als erstes die horizontale Überlappung überprüft, um unnötige vertikale Kollisionstests zu vermeiden. Wenn keine horizontale Überlappung vorliegt, kann der Spieler nicht auf dem Block landen oder von unten gegen den Block stoßen, daher werden vertikale Kollisionstests übersprungen. Wenn eine horizontale Überlappung vorliegt, wird dann die vertikale Überlappung überprüft,
@@ -1002,7 +1430,7 @@ namespace Mario_Unbound
                         }
                     }
                 }
-             }
+            }
 
             // mit hilfe von copilot gemacht:
 
@@ -1026,17 +1454,17 @@ namespace Mario_Unbound
             }
             if (touching == 0)
             {
-                _blockedDirection = 0; 
+                _blockedDirection = 0;
             }
 
             // Verhindere, dass Spieler oben aus dem Bild fliegt
-             if (player.Top < 0)
-             {
-                 player.Top = 0;
-                 _verticalMovement = 0;
-             }
+            if (player.Top < 0)
+            {
+                player.Top = 0;
+                _verticalMovement = 0;
+            }
 
-            
+
             _canJump = IsOnGround();
 
             // Mit hilfe vom Copilot gemacht: Bewegung der gegnerischen Schüsse und Kollisionserkennung mit Spieler
@@ -1070,12 +1498,12 @@ namespace Mario_Unbound
                     // wenn Spieler getroffen, dann Game Over (Fürs erste)
                     if (player != null && shot.Bounds.IntersectsWith(player.Bounds))
                     {
-                        
+
                         gameTimer?.Stop();
                         enemyFireTimer?.Stop();
 
-                        MessageBox.Show("Game Over! Der rote böse Monster hat dich besigt!");
-
+                        MessageBox.Show("Game Over! You were hit.");
+                        this.Close(); // Fenster schließen, sonst problem
                         // löschen aller gegnerischen Schüsse
                         foreach (var s in enemyShots.ToList())
                         {
@@ -1090,64 +1518,13 @@ namespace Mario_Unbound
                 }
             }
 
-            // Move player shots and check collisions with enemy
-            if (playerShots.Count > 0)
-            {
-                foreach (var playerShot in playerShots.ToList())
-                {
-                    if (!playerShotVelocities.TryGetValue(playerShot, out PointF pvel))
-                    {
-                        Controls.Remove(playerShot);
-                        playerShots.Remove(playerShot);
-                        playerShotVelocities.Remove(playerShot);
-                        continue;
-                    }
+            //im wasser versinken - NOCH GEPLANT
 
-                    playerShot.Left += (int)pvel.X;
-                    playerShot.Top += (int)pvel.Y;
-
-                    // entfernen, wenn außerhalb des Bildschirms
-                    if (playerShot.Right < 0 || playerShot.Left > ClientSize.Width || playerShot.Bottom < 0 || playerShot.Top > ClientSize.Height)
-                    {
-                        Controls.Remove(playerShot);
-                        playerShots.Remove(playerShot);
-                        playerShotVelocities.Remove(playerShot);
-                        continue;
-                    }
-
-                    // wenn der Spieler den "Boss" trift.
-                    if (enemyE1 != null && playerShot.Bounds.IntersectsWith(enemyE1.Bounds))
-                    {
-                        // Projektil entfernen
-                        Controls.Remove(playerShot);
-                        playerShots.Remove(playerShot);
-                        playerShotVelocities.Remove(playerShot);
-
-                        // Gegnerische Gesundheit reduzieren
-                        enemyE1Health -= 1;
-                        if (enemyHealthLabel != null)
-                            enemyHealthLabel.Text = $"Enemy HP: {enemyE1Health}";
-
-                        if (enemyE1Health <= 0)
-                        {
-
-
-                            // Der gegner ist besiegt worden
-                            gameTimer?.Stop();
-                            enemyFireTimer?.Stop();
-                            Controls.Remove(enemyE1);
-                            if (enemyHealthLabel != null)
-                                Controls.Remove(enemyHealthLabel);
-                            enemyE1 = null;
-                            MessageBox.Show("Du hast gewonnen! Du hast den 'Boss' besigt! Wir hoffen, das Dir das spiel gefallen hat!", "SIEG!!!!!!", MessageBoxButtons.OK);
-                            Homepage();
-
-                        }
-                    }
-                }
-            }
 
         }
+
+
+
 
         private void EnemyFireTimer_Tick(object? sender, EventArgs e)
         {
@@ -1175,8 +1552,8 @@ namespace Mario_Unbound
             {
                 float targetX = player.Left + player.Width / 2f;
                 float targetY = player.Top + player.Height / 2f;
-                float directionX = targetX - (spawnX + enemyFireball.Width/2f);
-                float directionY = targetY - (spawnY + enemyFireball.Height/2f);
+                float directionX = targetX - (spawnX + enemyFireball.Width / 2f);
+                float directionY = targetY - (spawnY + enemyFireball.Height / 2f);
                 float distansToPlayer = (float)Math.Sqrt(directionX * directionX + directionY * directionY);
 
                 // normalisiere die Richtung und multipliziere mit der gewünschten Geschwindigkeit, um die Geschwindigkeitskomponenten zu erhalten
@@ -1191,43 +1568,15 @@ namespace Mario_Unbound
             enemyShotVelocities[enemyFireball] = new PointF(velocityX, velocityY);
         }
 
-        
-        private void SpawnPlayerFireball()
-        {
-            if (player == null) 
-                return;
-
-            // Schuss cooldown (Copilot):
-            if (DateTime.UtcNow - _lastPlayerShot < _playerShotCooldown)
-                return;
-            
-            _lastPlayerShot = DateTime.UtcNow;
-            
-            Panel playerFireball = new Panel();
-            playerFireball.Size = new Size(16, 16);
-            playerFireball.BackColor = Color.OrangeRed;
-            int spawnX = player.Left + ( _wasLeftMovement ? -playerFireball.Width : player.Width );
-            int spawnY = player.Top + player.Height / 2 - playerFireball.Height / 2;
-            playerFireball.Location = new Point(spawnX, spawnY);
-            Controls.Add(playerFireball);
-            playerFireball.BringToFront();
-
-            float speed = 12;
-            float velocityX = _wasLeftMovement ? -speed : speed;
-            float velocityY = 0;
-            
-            playerShots.Add(playerFireball);
-            playerShotVelocities[playerFireball] = new PointF(velocityX, velocityY);
-        }
 
         // Checkt, ob der Spieler auf einem Boden (Boden oder fliegender Block) steht, um Springen zu ermöglichen
         private bool IsOnGround()
         {
-            if (player == null || floor == null) return false;
+            if (player == null || floorbetween == null) return false;
 
-            
+
             // Checkt den Kontakt mit dem Boden (mit einer kleinen Toleranz)
-            if (Math.Abs(player.Bottom - floor.Top) <= 3) // Math.Abs sonst bricht alles.
+            if (Math.Abs(player.Bottom - floorbetween.Top) <= 3) // Math.Abs sonst bricht alles.
                 return true;
 
             // Checkt, ob die Füße des Spielers mit der Oberseite eines Blocks in Kontakt sind, und ob der Spieler horizontal über dem Block liegt (mit einer kleinen Toleranz von 5 Pixeln, um ein zu strenges Treffen zu vermeiden)
@@ -1259,14 +1608,8 @@ namespace Mario_Unbound
                 if (IsOnGround())
                 {
                     _verticalMovement = -_jumpForce;
-                    _canJump = false; 
+                    _canJump = false;
                 }
-            }
-
-            // Player shoot with E key
-            if (e.KeyCode == Keys.E)
-            {
-                SpawnPlayerFireball();
             }
         }
 
@@ -1284,7 +1627,22 @@ namespace Mario_Unbound
 
         private void Pb_MarioAuswahl_Click(object? sender, EventArgs e)
         {
-            AufbauLevel1();
+            switch (_currentLevel)
+            {
+                case 1:
+                    AufbauLevel1();
+                    break;
+                case 2:
+                    AufbauLevel2();
+                    break;
+                case 3:
+                    AufbauLevel3();
+                    break;
+                case 4:
+                    AufbauLevelEnd();
+                    break;
+
+            }
 
             // pb vorbereiten (Bild und Layout)
             if (pb_Mario?.Image != null)
@@ -1294,7 +1652,7 @@ namespace Mario_Unbound
                 pb.Dock = DockStyle.Fill; // DockStyle.Fill sorgt dafür, dass das Bild den gesamten Bereich des PictureBox ausfüllt, unabhängig von der Größe des PictureBox.
             }
 
-            
+
             if (player != null)
             {
                 player.Controls.Add(pb);
@@ -1314,7 +1672,7 @@ namespace Mario_Unbound
         {
             Toad.chosenCharacters(pb_Toad, "Toad");
         }
-        
+
         private void Pb_Waluigi_Click(object? sender, EventArgs e)
         {
             Waluigi.chosenCharacters(pb_Waluigi, "Waluigi");
