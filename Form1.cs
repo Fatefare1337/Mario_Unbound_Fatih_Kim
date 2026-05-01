@@ -11,7 +11,7 @@ using Timer = System.Windows.Forms.Timer;
 namespace Mario_Unbound
 {
     /*
-    * Kim stunden: ca. 12,5 Stunden
+    * Kim stunden: ca. 13,5 Stunden
     * Fatih stunden: ca. 13,5 Stunde
     *
     *probleme:
