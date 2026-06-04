@@ -67,7 +67,7 @@ namespace Mario_Unbound
 
 
         public int coinsCollected = 0;
-        public int _currentLevel = 3;
+        public int _currentLevel = 1;
         PictureBox pb = new PictureBox();
 
         // new: animation images
@@ -870,36 +870,33 @@ namespace Mario_Unbound
         public void AufbauLevel1()
         {
             Controls.Clear();
-            ClientSize = new Size(1800, 800);
+            ClientSize = new Size(1600, 500);
 
-            floorbetween = new Panel();
-            floorbetween.BackColor = Color.Green;
-            if (!Controls.Contains(floorbetween))
-                Controls.Add(floorbetween);
-            floorbetween.Size = new Size(ClientSize.Width, 50);
-            floorbetween.Location = new Point(0 - 120, ClientSize.Height / 2 - 30);
+
+
+            // Boden erstellen bzw. wiederverwenden
 
             floor = new Panel();
             floor.BackColor = Color.Green;
             if (!Controls.Contains(floor))
                 Controls.Add(floor);
-            // make a gap at the right end of the floor so the player can fall through
-            floor.Size = new Size(ClientSize.Width - _floorGapWidth, 50);
-            floor.Location = new Point(0, ClientSize.Height - 50);
+            floor.Size = new Size(ClientSize.Width, 50);
+            floor.Location = new Point(0, ClientSize.Height - floor.Height);
 
+            //Wasser erstellen 
 
             Panel water = new Panel();
             water.BackColor = Color.LightBlue;
             water.Size = new Size(100, 25);
-            water.Location = new Point(200, ClientSize.Height / 2 - 30);
+            water.Location = new Point(200, 450);
             this.Controls.Add(water);
             water.BringToFront();
             waterPanels.Add(water);
 
             Panel water2 = new Panel();
             water2.BackColor = Color.LightBlue;
-            water2.Size = new Size(400, 25);
-            water2.Location = new Point(600, ClientSize.Height / 2 - 30);
+            water2.Size = new Size(300, 25);
+            water2.Location = new Point(600, 450);
             this.Controls.Add(water2);
             water2.BringToFront();
             waterPanels.Add(water2);
@@ -907,113 +904,78 @@ namespace Mario_Unbound
             Panel water3 = new Panel();
             water3.BackColor = Color.LightBlue;
             water3.Size = new Size(100, 25);
-            water3.Location = new Point(1300, ClientSize.Height / 2 - 30);
+            water3.Location = new Point(1000, 450);
             this.Controls.Add(water3);
             water3.BringToFront();
             waterPanels.Add(water3);
 
-            //hier soll ein coin rauf
+            //die fleigenden Blöcke erstelln
+
             Panel block1 = new Panel();
             block1.BackColor = Color.RosyBrown;
             block1.Size = new Size(150, 30);
-            block1.Location = new Point(180, ClientSize.Height / 2 - 300);
+            block1.Location = new Point(180, 300);
             this.Controls.Add(block1);
             flyingBlocks.Add(block1);
 
             Panel block2 = new Panel();
             block2.BackColor = Color.RosyBrown;
-            block2.Size = new Size(150, 30);
-            block2.Location = new Point(230, ClientSize.Height / 2 - 150);
+            block2.Size = new Size(300, 30);
+            block2.Location = new Point(800, 300);
             this.Controls.Add(block2);
             flyingBlocks.Add(block2);
-
-            Panel block3 = new Panel();
-            block3.BackColor = Color.RosyBrown;
-            block3.Size = new Size(150, 30);
-            block3.Location = new Point(850, ClientSize.Height / 2 - 170);
-            this.Controls.Add(block3);
-            flyingBlocks.Add(block3);
-
-            //coins
-
-
-
-            Panel coins = new Panel();
-            coins.BackColor = Color.Gold;
-            coins.Size = new Size(20, 20);
-            coins.Location = new Point(/*spawnpoint gesucht*/);
-            CoinsOnField.Add(coins);
-            Controls.Add(coins);
-
-            //if (player.Location == coins.Location)
-            //{
-            //    coinsCollected++;
-            //    Controls.Remove(coins);
-            //}
-
 
             //NPC panel
             Panel npc1 = new Panel();
             npc1.BackColor = Color.GreenYellow;
             npc1.Size = new Size(40, 60);
-            npc1.Location = new Point(350, ClientSize.Height / 2 - floorbetween.Height - block1.Height); //sollte noch dynamisch werden
+            npc1.Location = new Point(200, 300 - block1.Height); //sollte noch dynamisch werden
             Controls.Add(npc1);
 
             Panel npc2 = new Panel();
             npc2.BackColor = Color.GreenYellow;
             npc2.Size = new Size(40, 60);
-            npc2.Location = new Point(1400, ClientSize.Height / 2 - floorbetween.Height - block1.Height); //sollte noch dynamisch werden
+            npc2.Location = new Point(400, 420); //sollte noch dynamisch werden
             Controls.Add(npc2);
 
             Panel npc3 = new Panel();
             npc3.BackColor = Color.GreenYellow;
             npc3.Size = new Size(40, 60);
-            npc3.Location = new Point(1450, ClientSize.Height / 2 - floorbetween.Height - block1.Height);
+            npc3.Location = new Point(450, 420);
             Controls.Add(npc3);
 
             Panel npc4 = new Panel();
             npc4.BackColor = Color.GreenYellow;
             npc4.Size = new Size(40, 60);
-            npc4.Location = new Point(1400, ClientSize.Height - floor.Height - npc4.Height);
+            npc4.Location = new Point(950, 420);
             Controls.Add(npc4);
 
             //gegner
 
+            
             enemyE1.BackColor = Color.IndianRed;
             enemyE1.Size = new Size(200, 200);
-            enemyE1.Location = new Point(100, ClientSize.Height - floor.Height - enemyE1.Height);
+            enemyE1.Location = new Point(1400, 300); //sollte noch dynamisch werden
             Controls.Add(enemyE1);
-            // enemy health label (above enemy)
+
+            // enemy health label above enemy
             enemyHealthLabel = new Label();
             enemyHealthLabel.AutoSize = true;
-            enemyHealthLabel.ForeColor = Color.Red;
-            enemyHealthLabel.BackColor = Color.Red;
+            enemyHealthLabel.ForeColor = Color.White;
+            enemyHealthLabel.BackColor = Color.Transparent;
+            enemyHealthLabel.Top = enemyE1.Top - 20;
+            enemyHealthLabel.Left = enemyE1.Left;
             enemyHealthLabel.Font = new Font(enemyHealthLabel.Font.FontFamily, 10, FontStyle.Bold);
             enemyHealthLabel.Text = $"Enemy HP: {enemyE1Health}";
-            enemyHealthLabel.Left = enemyE1.Left;
-            enemyHealthLabel.Top = Math.Max(0, enemyE1.Top - 22);
             Controls.Add(enemyHealthLabel);
 
 
-            enemyE2.BackColor = Color.IndianRed;
-            enemyE2.Size = new Size(40, 60);
-            enemyE2.Location = new Point(800, ClientSize.Height - floor.Height - enemyE2.Height);
-            Controls.Add(enemyE2);
-
-
-
-            //fireball
-
-            Fireball fireballE = new Fireball();
-            fireballE.BuildingFireball(Color.Orange);
-            fireballE.Location = new Point(enemyE1.Left, enemyE1.Top + (enemyE1.Height / 2));
-            Controls.Add(fireballE);
 
             // enemy shooting timer: every 2.5 seconds spawn a red projectile aimed at player
             if (enemyFireTimer == null)
             {
                 enemyFireTimer = new Timer();
-                enemyFireTimer.Interval = 2500; // 2.5 seconds
+                enemyFireTimer.Interval = 1000; // 2.5 seconds
                 enemyFireTimer.Tick += EnemyFireTimer_Tick;
             }
             enemyFireTimer.Start();
@@ -1024,7 +986,7 @@ namespace Mario_Unbound
 
             pb.SizeMode = PictureBoxSizeMode.Zoom;
             player.Size = new Size(40, 60);
-            player.Location = new Point(50, floorbetween.Top - player.Height);
+            player.Location = new Point(50, floor.Top - player.Height);
             if (!Controls.Contains(player))
                 Controls.Add(player);
 
@@ -1036,365 +998,17 @@ namespace Mario_Unbound
                 gameTimer.Tick += GameTimer_Tick;
             }
             gameTimer.Start();
-
-            //endfahne
-
-            Endflag = new PictureBox();
-            Endflag.Image = Image.FromFile("Fahne.jpg");
-            Endflag.SizeMode = PictureBoxSizeMode.StretchImage;
-            Endflag.Location = new Point(0, floor.Top - Endflag.Height * 3);
-            Endflag.Size = new Size(80, 150);
-            Controls.Add(Endflag);
-
-
         }
 
         public void AufbauLevel2()
         {
-            Controls.Clear();
-            ClientSize = new Size(1800, 800);
-
-            floorbetween = new Panel();
-            floorbetween.BackColor = Color.Green;
-            if (!Controls.Contains(floorbetween))
-                Controls.Add(floorbetween);
-            floorbetween.Size = new Size(ClientSize.Width, 50);
-            floorbetween.Location = new Point(0 - 120, ClientSize.Height / 2 - 30);
-
-            floor = new Panel();
-            floor.BackColor = Color.Green;
-            if (!Controls.Contains(floor))
-                Controls.Add(floor);
-            floor.Size = new Size(ClientSize.Width - _floorGapWidth, 50);
-            floor.Location = new Point(0, ClientSize.Height - 50);
-
-            Panel water = new Panel();
-            water.BackColor = Color.LightBlue;
-            water.Size = new Size(350, 25);
-            water.Location = new Point(600, ClientSize.Height / 2 - 30);
-            this.Controls.Add(water);
-            water.BringToFront();
-            waterPanels.Add(water);
-
-
-
-            //hier soll n coin drunter
-            Panel block1 = new Panel();
-            block1.BackColor = Color.RosyBrown;
-            block1.Size = new Size(200, 30);
-            block1.Location = new Point(200, ClientSize.Height / 2 - 120);
-            this.Controls.Add(block1);
-
-            flyingBlocks.Add(block1);
-
-            //hier soll ein coin drauf
-            Panel block2 = new Panel();
-            block2.BackColor = Color.RosyBrown;
-            block2.Size = new Size(250, 30);
-            block2.Location = new Point(1200, ClientSize.Height / 2 - 150);
-            this.Controls.Add(block2);
-            flyingBlocks.Add(block2);
-
-            Panel block3 = new Panel();
-            block3.BackColor = Color.RosyBrown;
-            block3.Size = new Size(100, 50);
-            block3.Location = new Point(1400, ClientSize.Height / 2 - floorbetween.Height - block1.Height);
-            this.Controls.Add(block3);
-            flyingBlocks.Add(block3);
-
-            Panel block4 = new Panel();
-            block4.BackColor = Color.RosyBrown;
-            block4.Size = new Size(150, 170);
-            block4.Location = new Point(850, ClientSize.Height - 170);
-            this.Controls.Add(block4);
-            flyingBlocks.Add(block4);
-
-            //coins
-
-            Panel coins = new Panel();
-            coins.BackColor = Color.Gold;
-            coins.Size = new Size(20, 20);
-            coins.Location = new Point(250, ClientSize.Height / 2 - floorbetween.Height);
-            CoinsOnField.Add(coins);
-            Controls.Add(coins);
-
-
-
-            //if (player.Location == coins.Location)
-            //{
-            //    coinsCollected++;
-            //    Controls.Remove(coins);
-            //}
-
-
-            //NPC panel
-            Panel npc1 = new Panel();
-            npc1.BackColor = Color.GreenYellow;
-            npc1.Size = new Size(40, 60);
-            npc1.Location = new Point(120, ClientSize.Height / 2 - floorbetween.Height - block1.Height); //sollte noch dynamisch werden
-            Controls.Add(npc1);
-
-            //hier dahinter nen coin
-            Panel npc2 = new Panel();
-            npc2.BackColor = Color.GreenYellow;
-            npc2.Size = new Size(40, 60);
-            npc2.Location = new Point(200, ClientSize.Height / 2 - floorbetween.Height - block1.Height); //sollte noch dynamisch werden
-            Controls.Add(npc2);
-
-            Panel npc3 = new Panel();
-            npc3.BackColor = Color.GreenYellow;
-            npc3.Size = new Size(40, 60);
-            npc3.Location = new Point(1500, ClientSize.Height / 2 - floorbetween.Height - block1.Height);
-            Controls.Add(npc3);
-
-            Panel npc4 = new Panel();
-            npc4.BackColor = Color.GreenYellow;
-            npc4.Size = new Size(40, 60);
-            npc4.Location = new Point(1400, ClientSize.Height - floor.Height - npc4.Height);
-            Controls.Add(npc4);
-
-            //gegner
-
-            enemyE1.BackColor = Color.IndianRed;
-            enemyE1.Size = new Size(200, 200);
-            enemyE1.Location = new Point(100, ClientSize.Height - floor.Height - enemyE1.Height);
-            Controls.Add(enemyE1);
-
-
-            enemyE2.BackColor = Color.IndianRed;
-            enemyE2.Size = new Size(40, 60);
-            enemyE2.Location = new Point(1200, ClientSize.Height - floor.Height - enemyE2.Height);
-            Controls.Add(enemyE2);
-
-            enemyE3.BackColor = Color.IndianRed;
-            enemyE3.Size = new Size(140, 140);
-            enemyE3.Location = new Point(400, ClientSize.Height - floor.Height - enemyE2.Height);
-            Controls.Add(enemyE3);
-
-
-
-            //fireball
-
-            Fireball fireballE = new Fireball();
-            fireballE.BuildingFireball(Color.Orange);
-            fireballE.Location = new Point(enemyE1.Left, enemyE1.Top + (enemyE1.Height / 2));
-            Controls.Add(fireballE);
-
-            Fireball fireballE2 = new Fireball();
-            fireballE2.BuildingFireball(Color.Orange);
-            fireballE2.Location = new Point(enemyE3.Left, enemyE3.Top + (enemyE3.Height / 2));
-            Controls.Add(fireballE2);
-
-            // enemy shooting timer: every 2.5 seconds spawn a red projectile aimed at player
-            if (enemyFireTimer == null)
-            {
-                enemyFireTimer = new Timer();
-                enemyFireTimer.Interval = 2500; // 2.5 seconds
-                enemyFireTimer.Tick += EnemyFireTimer_Tick;
-            }
-            enemyFireTimer.Start();
-
-            // Spielerpanel erstellen
-
-            player = new Panel();
-
-            pb.SizeMode = PictureBoxSizeMode.Zoom;
-            player.Size = new Size(40, 60);
-            player.Location = new Point(50, floorbetween.Top - player.Height);
-            if (!Controls.Contains(player))
-                Controls.Add(player);
-
-            // Game Timer 
-            if (gameTimer == null)
-            {
-                gameTimer = new Timer();
-                gameTimer.Interval = 20; // ~50 FPS
-                gameTimer.Tick += GameTimer_Tick;
-            }
-            gameTimer.Start();
-
-            //endfahne
-
-            Endflag = new PictureBox();
-            Endflag.Image = Image.FromFile("Fahne.jpg");
-            Endflag.SizeMode = PictureBoxSizeMode.StretchImage;
-            Endflag.Location = new Point(0, floor.Top - Endflag.Height * 3);
-            Endflag.Size = new Size(80, 150);
-            Controls.Add(Endflag);
-
-
+            
 
         }
 
         public void AufbauLevel3()
         {
-            Controls.Clear();
-            ClientSize = new Size(1800, 800);
-
-            floorbetween = new Panel();
-            floorbetween.BackColor = Color.Green;
-            if (!Controls.Contains(floorbetween))
-                Controls.Add(floorbetween);
-            floorbetween.Size = new Size(ClientSize.Width, 50);
-            floorbetween.Location = new Point(0 - 120, ClientSize.Height / 2 - 30);
-
-            floor = new Panel();
-            floor.BackColor = Color.Green;
-            if (!Controls.Contains(floor))
-                Controls.Add(floor);
-            floor.Size = new Size(ClientSize.Width - _floorGapWidth, 50);
-            floor.Location = new Point(0, ClientSize.Height - 50);
-
-            //Panel water = new Panel();
-            //water.BackColor = Color.LightBlue;
-            //water.Size = new Size(350, 25);
-            //water.Location = new Point(600, ClientSize.Height / 2 - 30);
-            //this.Controls.Add(water);
-            //water.BringToFront();
-            //waterPanels.Add(water);
-
-
-
-
-            Panel block1 = new Panel();
-            block1.BackColor = Color.RosyBrown;
-            block1.Size = new Size(200, 30);
-            block1.Location = new Point(1600, ClientSize.Height / 2 - 200);
-            this.Controls.Add(block1);
-
-            flyingBlocks.Add(block1);
-
-            //hier soll ein coin drauf
-            Panel block2 = new Panel();
-            block2.BackColor = Color.RosyBrown;
-            block2.Size = new Size(250, 30);
-            block2.Location = new Point(ClientSize.Width - enemyE1.Width, ClientSize.Height - floor.Height - enemyE1.Height - block2.Height * 2);
-            this.Controls.Add(block2);
-            flyingBlocks.Add(block2);
-
-
-
-
-            //coins
-
-            Panel coins = new Panel();
-            coins.BackColor = Color.Gold;
-            coins.Size = new Size(20, 20);
-            coins.Location = new Point(/*noch zu plazieren*/);
-            CoinsOnField.Add(coins);
-            Controls.Add(coins);
-
-
-
-            //if (player.Location == coins.Location)
-            //{
-            //    coinsCollected++;
-            //    Controls.Remove(coins);
-            //}
-
-
-            ////NPC panel
-            //Panel npc1 = new Panel();
-            //npc1.BackColor = Color.GreenYellow;
-            //npc1.Size = new Size(40, 60);
-            //npc1.Location = new Point(120, ClientSize.Height / 2 - floorbetween.Height - block1.Height); //sollte noch dynamisch werden
-            //Controls.Add(npc1);
-
-            ////hier dahinter nen coin
-            //Panel npc2 = new Panel();
-            //npc2.BackColor = Color.GreenYellow;
-            //npc2.Size = new Size(40, 60);
-            //npc2.Location = new Point(200, ClientSize.Height / 2 - floorbetween.Height - block1.Height); //sollte noch dynamisch werden
-            //Controls.Add(npc2);
-
-            //Panel npc3 = new Panel();
-            //npc3.BackColor = Color.GreenYellow;
-            //npc3.Size = new Size(40, 60);
-            //npc3.Location = new Point(1500, ClientSize.Height / 2 - floorbetween.Height - block1.Height);
-            //Controls.Add(npc3);
-
-            //Panel npc4 = new Panel();
-            //npc4.BackColor = Color.GreenYellow;
-            //npc4.Size = new Size(40, 60);
-            //npc4.Location = new Point(1400, ClientSize.Height - floor.Height - npc4.Height);
-            //Controls.Add(npc4);
-
-            //gegner
-
-            enemyE1.BackColor = Color.IndianRed;
-            enemyE1.Size = new Size(150, 150);
-            enemyE1.Location = new Point(ClientSize.Width - enemyE1.Width, ClientSize.Height - floor.Height - enemyE1.Height);
-            Controls.Add(enemyE1);
-
-
-            enemyE2.BackColor = Color.IndianRed;
-            enemyE2.Size = new Size(40, 60);
-            enemyE2.Location = new Point(250, ClientSize.Height / 2 - floorbetween.Height - block1.Height);
-            Controls.Add(enemyE2);
-
-            enemyE3.BackColor = Color.IndianRed;
-            enemyE3.Size = new Size(40, 60);
-            enemyE3.Location = new Point(400, ClientSize.Height / 2 - floorbetween.Height - block1.Height);
-            Controls.Add(enemyE3);
-
-            enemyE4.BackColor = Color.IndianRed;
-            enemyE4.Size = new Size(40, 60);
-            enemyE4.Location = new Point(780, ClientSize.Height - floor.Height - enemyE2.Height);
-            Controls.Add(enemyE4);
-
-            enemyE5.BackColor = Color.IndianRed;
-            enemyE5.Size = new Size(40, 60);
-            enemyE5.Location = new Point(670, ClientSize.Height - floor.Height - enemyE2.Height);
-            Controls.Add(enemyE5);
-
-            //fireball
-
-            Fireball fireballE = new Fireball();
-            fireballE.BuildingFireball(Color.Orange);
-            fireballE.Location = new Point(enemyE1.Left, enemyE1.Top + (enemyE1.Height / 2));
-            Controls.Add(fireballE);
-
-            Fireball fireballE2 = new Fireball();
-            fireballE2.BuildingFireball(Color.Orange);
-            fireballE2.Location = new Point(enemyE3.Left, enemyE3.Top + (enemyE3.Height / 2));
-            Controls.Add(fireballE2);
-
-            // enemy shooting timer: every 2.5 seconds spawn a red projectile aimed at player
-            if (enemyFireTimer == null)
-            {
-                enemyFireTimer = new Timer();
-                enemyFireTimer.Interval = 2500; // 2.5 seconds
-                enemyFireTimer.Tick += EnemyFireTimer_Tick;
-            }
-            enemyFireTimer.Start();
-
-            // Spielerpanel erstellen
-
-            player = new Panel();
-
-            pb.SizeMode = PictureBoxSizeMode.Zoom;
-            player.Size = new Size(40, 60);
-            player.Location = new Point(50, floorbetween.Top - player.Height);
-            if (!Controls.Contains(player))
-                Controls.Add(player);
-
-            // Game Timer 
-            if (gameTimer == null)
-            {
-                gameTimer = new Timer();
-                gameTimer.Interval = 20; // ~50 FPS
-                gameTimer.Tick += GameTimer_Tick;
-            }
-            gameTimer.Start();
-
-            //endfahne
-
-            Endflag = new PictureBox();
-            Endflag.Image = Image.FromFile("Fahne.jpg");
-            Endflag.SizeMode = PictureBoxSizeMode.StretchImage;
-            Endflag.Location = new Point(0, floor.Top - Endflag.Height * 3);
-            Endflag.Size = new Size(80, 150);
-            Controls.Add(Endflag);
+            
         }
 
         public void AufbauLevelEnd()
@@ -1491,19 +1105,7 @@ namespace Mario_Unbound
                     _verticalMovement = 0;
                 }
             }
-            else if (floorbetween != null && player.Bottom >= floorbetween.Top)
-            {
-                // allow a gap at the right end of the level for floorbetween as well
-                int gapLeft = ClientSize.Width - _floorGapWidth;
-                bool overGap = player.Left >= gapLeft;
-
-                if (!overGap && player.Right <= ClientSize.Width)
-                {
-                    player.Top = floorbetween.Top - player.Height;
-                    _verticalMovement = 0;
-                }
-                // sonst: Spieler fällt durch die Lücke
-            }
+            // floorbetween removed: no additional snap logic here
 
             // Verhindere, dass Spieler aus dem Fenster nach oben verschwindet
             if (player.Top < 0)
@@ -1801,20 +1403,17 @@ namespace Mario_Unbound
         // Checkt, ob der Spieler auf einem Boden (Boden oder fliegender Block) steht, um Springen zu ermöglichen
         private bool IsOnGround()
         {
-            if (player == null || floorbetween == null) return false;
+            if (player == null) return false;
 
-
-            // Checkt den Kontakt mit dem Boden (mit einer kleinen Toleranz)
-            if (Math.Abs(player.Bottom - floorbetween.Top) <= 3) // Math.Abs sonst bricht alles.
+            // prefer the main floor for ground checks; floorbetween is no longer required
+            if (floor != null && Math.Abs(player.Bottom - floor.Top) <= 3)
                 return true;
 
-            // Checkt, ob die Füße des Spielers mit der Oberseite eines Blocks in Kontakt sind, und ob der Spieler horizontal über dem Block liegt (mit einer kleinen Toleranz von 5 Pixeln, um ein zu strenges Treffen zu vermeiden)
+            // Check collision with flying blocks (platforms)
             foreach (Panel block in flyingBlocks)
             {
                 if (Math.Abs(player.Bottom - block.Top) <= 3 && player.Right > block.Left + 5 && player.Left < block.Right - 5)
-                {
                     return true;
-                }
             }
 
             return false;
@@ -1831,8 +1430,8 @@ namespace Mario_Unbound
                 _goRight = true;
             }
 
-            // Nur springen, wenn Spieler Kontakt mit Boden oder einem fliegenden Block hat
-            if ((e.KeyCode == Keys.Space || e.KeyCode == Keys.Up || e.KeyCode == Keys.W) && player != null)
+            // Springen: Space oder W (Up wird weiterhin unterstützt)
+            if (player != null && (e.KeyCode == Keys.Space || e.KeyCode == Keys.W || e.KeyCode == Keys.Up))
             {
                 if (IsOnGround())
                 {
