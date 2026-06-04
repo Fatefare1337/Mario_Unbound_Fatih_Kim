@@ -27,7 +27,6 @@ namespace Mario_Unbound
     *gif hat weiﬂen rand, bitte noch entfernen
     *coins sammeln einbaun
     *man kann durch npc durchlaufen, das nicht gut
-    *spieler kann noch nicht schieﬂen
     *gegner und npc brauchen noch ein aussehen statt nur blop
     *wenn enemy2 getouched wird game over, auﬂer wenn von oben getouched wird, dann wird enemy2 zerstˆrt
     *kleiner gegner soll sich bewegen
@@ -99,6 +98,16 @@ namespace Mario_Unbound
         Enemy enemyE5 = new Enemy();
 
         private Dictionary<Panel, PointF> enemyShotVelocities = new Dictionary<Panel, PointF>();
+        // player projectiles
+        private List<Panel> playerShots = new List<Panel>();
+        private Dictionary<Panel, PointF> playerShotVelocities = new Dictionary<Panel, PointF>();
+
+        // enemy health and UI
+        private int enemyE1Health = 5;
+        private Label enemyHealthLabel;
+        // player shot cooldown
+        private DateTime _lastPlayerShot = DateTime.MinValue;
+        private readonly TimeSpan _playerShotCooldown = TimeSpan.FromMilliseconds(100);
         private bool _goLeft = false;
         private bool _goRight = false;
         private int _verticalMovement = 0;
@@ -108,6 +117,8 @@ namespace Mario_Unbound
         private bool _canJump = false;
         // -1 = blocked moving left, 1 = blocked moving right, 0 = not blocked
         private int _blockedDirection = 0;
+        // width of gap at end of main floor (pixels)
+        private int _floorGapWidth = 150;
 
 
         public Form1()
@@ -142,6 +153,115 @@ namespace Mario_Unbound
             {
                 runningGif = null;
             }
+            // Move player shots and check collisions with enemy
+            if (playerShots.Count > 0)
+            {
+                foreach (var playerShot in playerShots.ToList())
+                {
+                    if (!playerShotVelocities.TryGetValue(playerShot, out PointF pvel))
+                    {
+                        Controls.Remove(playerShot);
+                        playerShots.Remove(playerShot);
+                        playerShotVelocities.Remove(playerShot);
+                        continue;
+                    }
+
+                    playerShot.Left += (int)pvel.X;
+                    playerShot.Top += (int)pvel.Y;
+
+                    // entfernen, wenn auﬂerhalb des Bildschirms
+                    if (playerShot.Right < 0 || playerShot.Left > ClientSize.Width || playerShot.Bottom < 0 || playerShot.Top > ClientSize.Height)
+                    {
+                        Controls.Remove(playerShot);
+                        playerShots.Remove(playerShot);
+                        playerShotVelocities.Remove(playerShot);
+                        continue;
+                    }
+
+                    // wenn der Spieler den "Boss" trifft.
+                    if (enemyE1 != null && playerShot.Bounds.IntersectsWith(enemyE1.Bounds))
+                    {
+                        // Projektil entfernen
+                        Controls.Remove(playerShot);
+                        playerShots.Remove(playerShot);
+                        playerShotVelocities.Remove(playerShot);
+
+                        // Gegnerische Gesundheit reduzieren
+                        enemyE1Health -= 1;
+                        if (enemyHealthLabel != null)
+                            enemyHealthLabel.Text = $"Enemy HP: {enemyE1Health}";
+
+                        if (enemyE1Health <= 0)
+                        {
+                            // Der gegner ist besiegt worden
+                            gameTimer?.Stop();
+                            enemyFireTimer?.Stop();
+                            Controls.Remove(enemyE1);
+                            if (enemyHealthLabel != null)
+                                Controls.Remove(enemyHealthLabel);
+                            enemyE1 = null;
+                            MessageBox.Show("Du hast gewonnen! Du hast den 'Boss' besigt! Wir hoffen, das Dir das spiel gefallen hat!", "SIEG!!!!!!", MessageBoxButtons.OK);
+                            Homepage();
+                        }
+
+                    }
+                }
+            }
+            // Move player shots and check collisions with enemy
+            if (playerShots.Count > 0)
+            {
+                foreach (var playerShot in playerShots.ToList())
+                {
+                    if (!playerShotVelocities.TryGetValue(playerShot, out PointF pvel))
+                    {
+                        Controls.Remove(playerShot);
+                        playerShots.Remove(playerShot);
+                        playerShotVelocities.Remove(playerShot);
+                        continue;
+                    }
+
+                    playerShot.Left += (int)pvel.X;
+                    playerShot.Top += (int)pvel.Y;
+
+                    // entfernen, wenn auﬂerhalb des Bildschirms
+                    if (playerShot.Right < 0 || playerShot.Left > ClientSize.Width || playerShot.Bottom < 0 || playerShot.Top > ClientSize.Height)
+                    {
+                        Controls.Remove(playerShot);
+                        playerShots.Remove(playerShot);
+                        playerShotVelocities.Remove(playerShot);
+                        continue;
+                    }
+
+                    // wenn der Spieler den "Boss" trifft.
+                    if (enemyE1 != null && playerShot.Bounds.IntersectsWith(enemyE1.Bounds))
+                    {
+                        // Projektil entfernen
+                        Controls.Remove(playerShot);
+                        playerShots.Remove(playerShot);
+                        playerShotVelocities.Remove(playerShot);
+
+                        // Gegnerische Gesundheit reduzieren
+                        enemyE1Health -= 1;
+                        if (enemyHealthLabel != null)
+                            enemyHealthLabel.Text = $"Enemy HP: {enemyE1Health}";
+
+                        if (enemyE1Health <= 0)
+                        {
+                            // Der gegner ist besiegt worden
+                            gameTimer?.Stop();
+                            enemyFireTimer?.Stop();
+                            Controls.Remove(enemyE1);
+                            if (enemyHealthLabel != null)
+                                Controls.Remove(enemyHealthLabel);
+                            enemyE1 = null;
+                            MessageBox.Show("Du hast gewonnen! Du hast den 'Boss' besigt! Wir hoffen, das Dir das spiel gefallen hat!", "SIEG!!!!!!", MessageBoxButtons.OK);
+                            Homepage();
+                        }
+                    }
+                }
+            }
+            
+            
 
             try
             {
@@ -763,7 +883,8 @@ namespace Mario_Unbound
             floor.BackColor = Color.Green;
             if (!Controls.Contains(floor))
                 Controls.Add(floor);
-            floor.Size = new Size(ClientSize.Width, 50);
+            // make a gap at the right end of the floor so the player can fall through
+            floor.Size = new Size(ClientSize.Width - _floorGapWidth, 50);
             floor.Location = new Point(0, ClientSize.Height - 50);
 
 
@@ -862,6 +983,16 @@ namespace Mario_Unbound
             enemyE1.Size = new Size(200, 200);
             enemyE1.Location = new Point(100, ClientSize.Height - floor.Height - enemyE1.Height);
             Controls.Add(enemyE1);
+            // enemy health label (above enemy)
+            enemyHealthLabel = new Label();
+            enemyHealthLabel.AutoSize = true;
+            enemyHealthLabel.ForeColor = Color.Red;
+            enemyHealthLabel.BackColor = Color.Red;
+            enemyHealthLabel.Font = new Font(enemyHealthLabel.Font.FontFamily, 10, FontStyle.Bold);
+            enemyHealthLabel.Text = $"Enemy HP: {enemyE1Health}";
+            enemyHealthLabel.Left = enemyE1.Left;
+            enemyHealthLabel.Top = Math.Max(0, enemyE1.Top - 22);
+            Controls.Add(enemyHealthLabel);
 
 
             enemyE2.BackColor = Color.IndianRed;
@@ -934,7 +1065,7 @@ namespace Mario_Unbound
             floor.BackColor = Color.Green;
             if (!Controls.Contains(floor))
                 Controls.Add(floor);
-            floor.Size = new Size(ClientSize.Width, 50);
+            floor.Size = new Size(ClientSize.Width - _floorGapWidth, 50);
             floor.Location = new Point(0, ClientSize.Height - 50);
 
             Panel water = new Panel();
@@ -1111,7 +1242,7 @@ namespace Mario_Unbound
             floor.BackColor = Color.Green;
             if (!Controls.Contains(floor))
                 Controls.Add(floor);
-            floor.Size = new Size(ClientSize.Width, 50);
+            floor.Size = new Size(ClientSize.Width - _floorGapWidth, 50);
             floor.Location = new Point(0, ClientSize.Height - 50);
 
             //Panel water = new Panel();
@@ -1275,7 +1406,7 @@ namespace Mario_Unbound
 
         private void GameTimer_Tick(object? sender, EventArgs e)
         {
-            if (player == null || floorbetween == null)
+            if (player == null)
                 return;
 
             // Horizontalbewegung
@@ -1346,11 +1477,32 @@ namespace Mario_Unbound
             player.Top += _verticalMovement;
             _verticalMovement += _gravity;
 
-            // Kollision mit Boden: wenn unter oder auf Boden, setze auf Boden und Null Velocity
-            if (player.Bottom >= floorbetween.Top)
+            // Kollision mit Boden: pr¸fe zuerst den unteren Hauptboden (`floor`) (der eine L¸cke am rechten Ende haben kann),
+            // ansonsten pr¸fe das mittlere `floorbetween`.
+            if (floor != null && player.Bottom >= floor.Top)
             {
-                player.Top = floorbetween.Top - player.Height;
-                _verticalMovement = 0;
+                // Wenn der Spieler ¸ber der L¸cke am rechten Ende des Bodens steht, soll er fallen.
+                int gapLeft = floor.Left + floor.Width;
+                bool overGap = player.Right > gapLeft;
+
+                if (!overGap)
+                {
+                    player.Top = floor.Top - player.Height;
+                    _verticalMovement = 0;
+                }
+            }
+            else if (floorbetween != null && player.Bottom >= floorbetween.Top)
+            {
+                // allow a gap at the right end of the level for floorbetween as well
+                int gapLeft = ClientSize.Width - _floorGapWidth;
+                bool overGap = player.Left >= gapLeft;
+
+                if (!overGap && player.Right <= ClientSize.Width)
+                {
+                    player.Top = floorbetween.Top - player.Height;
+                    _verticalMovement = 0;
+                }
+                // sonst: Spieler f‰llt durch die L¸cke
             }
 
             // Verhindere, dass Spieler aus dem Fenster nach oben verschwindet
@@ -1518,6 +1670,55 @@ namespace Mario_Unbound
                 }
             }
 
+            // Move player shots and check collisions with enemyE1
+            for (int i = playerShots.Count - 1; i >= 0; i--)
+            {
+                var playerShot = playerShots[i];
+                if (!playerShotVelocities.TryGetValue(playerShot, out PointF pvel))
+                {
+                    Controls.Remove(playerShot);
+                    playerShotVelocities.Remove(playerShot);
+                    playerShots.RemoveAt(i);
+                    continue;
+                }
+
+                playerShot.Left += (int)pvel.X;
+                playerShot.Top += (int)pvel.Y;
+
+                // remove if out of bounds
+                if (playerShot.Right < 0 || playerShot.Left > ClientSize.Width || playerShot.Bottom < 0 || playerShot.Top > ClientSize.Height)
+                {
+                    Controls.Remove(playerShot);
+                    playerShotVelocities.Remove(playerShot);
+                    playerShots.RemoveAt(i);
+                    continue;
+                }
+
+                // collision with enemyE1
+                if (enemyE1 != null && playerShot.Bounds.IntersectsWith(enemyE1.Bounds))
+                {
+                    Controls.Remove(playerShot);
+                    playerShotVelocities.Remove(playerShot);
+                    playerShots.RemoveAt(i);
+
+                    enemyE1Health -= 1;
+                    if (enemyHealthLabel != null)
+                        enemyHealthLabel.Text = $"Enemy HP: {enemyE1Health}";
+
+                    if (enemyE1Health <= 0)
+                    {
+                        gameTimer?.Stop();
+                        enemyFireTimer?.Stop();
+                        Controls.Remove(enemyE1);
+                        if (enemyHealthLabel != null) Controls.Remove(enemyHealthLabel);
+                        enemyE1 = null;
+                        MessageBox.Show("Enemy defeated!");
+                        Homepage();
+                        return;
+                    }
+                }
+            }
+
             //im wasser versinken - NOCH GEPLANT
 
 
@@ -1568,6 +1769,34 @@ namespace Mario_Unbound
             enemyShotVelocities[enemyFireball] = new PointF(velocityX, velocityY);
         }
 
+        private void SpawnPlayerFireball()
+        {
+            if (player == null)
+                return;
+
+            // enforce cooldown
+            if (DateTime.UtcNow - _lastPlayerShot < _playerShotCooldown)
+                return;
+            _lastPlayerShot = DateTime.UtcNow;
+
+            Panel playerFireball = new Panel();
+            playerFireball.Size = new Size(16, 16);
+            playerFireball.BackColor = Color.OrangeRed;
+
+            int spawnX = _wasLeftMovement ? player.Left - playerFireball.Width : player.Right;
+            int spawnY = player.Top + player.Height / 2 - playerFireball.Height / 2;
+            playerFireball.Location = new Point(spawnX, spawnY);
+            Controls.Add(playerFireball);
+            playerFireball.BringToFront();
+
+            float speed = 12f;
+            float vx = _wasLeftMovement ? -speed : speed;
+            float vy = 0f;
+
+            playerShots.Add(playerFireball);
+            playerShotVelocities[playerFireball] = new PointF(vx, vy);
+        }
+
 
         // Checkt, ob der Spieler auf einem Boden (Boden oder fliegender Block) steht, um Springen zu ermˆglichen
         private bool IsOnGround()
@@ -1610,6 +1839,12 @@ namespace Mario_Unbound
                     _verticalMovement = -_jumpForce;
                     _canJump = false;
                 }
+            }
+
+            // shoot with E key
+            if (e.KeyCode == Keys.E)
+            {
+                SpawnPlayerFireball();
             }
         }
 
