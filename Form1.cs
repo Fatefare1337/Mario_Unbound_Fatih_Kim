@@ -6,6 +6,7 @@ using System.Drawing.Drawing2D;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using Windows.Gaming.Input;
+using Windows.Services.Maps.Guidance;
 using static Mario_Unbound.Controller;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 using Timer = System.Windows.Forms.Timer;
@@ -15,7 +16,7 @@ namespace Mario_Unbound
 
     /*
     * Kim stunden: ca. 16 Stunden
-    * Fatih stunden: ca. 14,5 Stunde
+    * Fatih stunden: ca. 17,5 Stunde
     *
     *neue probleme: WICHTIG:
     *Level2 Enemy2 kann nich angeschossen werden
@@ -28,6 +29,7 @@ namespace Mario_Unbound
      */
     public partial class Form1 : Form
     {
+
         List <Panel> allCoins = new List<Panel>();
         List<Panel> allNpcs = new List<Panel>();
         private PS4Controller _ps4Controller;
@@ -36,7 +38,9 @@ namespace Mario_Unbound
         // Deadzone für den Stick 
         private const double Deadzone = 0.15;
         private const double StickMitte = 0.5;
-       
+
+
+        
 
         bool talking = false;
         bool _signedIn = false;
@@ -44,7 +48,7 @@ namespace Mario_Unbound
         PictureBox picture;
         PictureBox Logo;
         PictureBox Endflag;
-        Button Btn_Start; Button Btn_Level; Button Btn_Team; Button Btn_Profil; Button Btn_Closing;
+        Button Btn_Start; Button Btn_Team; Button Btn_Profil; Button Btn_Closing;
         public string _profilUsername, _profilEmail, _profiPassword;
         TextBox txb_Username, txb_Email, txb_Password;
         PictureBox pb_Mario, pb_Luigi, pb_Toad, pb_Waluigi;
@@ -78,12 +82,11 @@ namespace Mario_Unbound
 
         // Spieler- und Bewegungsfelder
         private Panel player;
-        private Panel floorbetween;
+        
         private Panel floor;
-        private Panel water;
+        
         private Timer gameTimer;
         private Timer enemyFireTimer;
-        private Panel coins;
         Enemy enemyE1 = new Enemy();
         Enemy enemyE2 = new Enemy();
         Enemy enemyE3 = new Enemy();
@@ -113,22 +116,22 @@ namespace Mario_Unbound
         // -1 = blocked moving left, 1 = blocked moving right, 0 = not blocked
         private int _blockedDirection = 0;
         // width of gap at end of main floor (pixels)
-        private int _floorGapWidth = 150;
+        
 
 
         public Form1()
         {
             InitializeComponent();
-            this.KeyPreview = true; //gemini : damit Form1 auch KeyEvents empfängt, wenn ein anderes Steuerelement den Fokus hat (z.B. TextBox)
+            KeyPreview = true; //gemini : damit Form1 auch KeyEvents empfängt, wenn ein anderes Steuerelement den Fokus hat (z.B. TextBox)
             _ps4Controller = new PS4Controller();
 
-            this.Text = "Mario Unbound - F to talk - E to shoot, Collected coins: " + coinsCollected;
+            Text = "Mario Unbound - F to talk - E to shoot, Collected coins: " + coinsCollected;
 
             _controllerTimer = new Timer();
             _controllerTimer.Interval = 20;
             _controllerTimer.Tick += _ControllerTimer_Tick; 
             _controllerTimer.Start();
-
+            
 
 
             DoubleBuffered = true; // Verhindert Flackern
@@ -302,6 +305,7 @@ namespace Mario_Unbound
             #region Gegner
             Enemy enemy1 = new Enemy();
             enemy1.MovingNonHuman();
+            
             #endregion
         }
         
@@ -703,22 +707,31 @@ namespace Mario_Unbound
             AreaK.Left = 100;
         } //Ende Projekt stunden und fotos
 
-        protected void Characters()
+        protected void SpielSeite()
         {
             Controls.Clear();
 
             BackToPage();
 
-            Label lbl_CharakterChoosing = new Label();
-            lbl_CharakterChoosing.Text = "Choose your Character!";
+            Label lbl_titel = new Label();
+            lbl_titel.Text = "Mach dich auf eine spannend Reise gefasst!";
 
-            Controls.Add(lbl_CharakterChoosing);
-            lbl_CharakterChoosing.Size = new Size(200, 30);
-            lbl_CharakterChoosing.Top = 30;
-            lbl_CharakterChoosing.Left = (ClientSize.Width - lbl_CharakterChoosing.Width) / 2;
-            lbl_CharakterChoosing.Font = new Font(lbl_CharakterChoosing.Font, FontStyle.Bold);
+            Controls.Add(lbl_titel);
+            lbl_titel.Size = new Size(200, 100);
+            lbl_titel.Top = 30;
+            lbl_titel.Left = (ClientSize.Width - lbl_titel.Width) / 2;
+            lbl_titel.Font = new Font(lbl_titel.Font, FontStyle.Bold);
 
-            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - -
+            Label lbl_Tutorial = new Label();
+            lbl_Tutorial.Text = "Deine Reise beginnt hier! Bist du bereit, Leben zu retten?\n" +
+                "Steuerung: WASD zum bewegen, E zum schießen, F zum reden\n" +
+                "Für PS4 Kontroller: joystick zum bewegen, X zum springen, Kreis zum schießen, Dreieck zum reden\n" +
+                "Klicke auf Mario, um deine Reise zu beginnen!";
+
+            Controls.Add(lbl_Tutorial);
+            lbl_Tutorial.Size = new Size(410,100);
+            lbl_Tutorial.Top = 150;
+            lbl_Tutorial.Left = (ClientSize.Width - lbl_Tutorial.Width) / 2;
 
             pb_Mario = new PictureBox();
             Controls.Add(pb_Mario);
@@ -731,45 +744,10 @@ namespace Mario_Unbound
 
             pb_Mario.Click += Pb_MarioAuswahl_Click;
 
-            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - -
+           
 
-            pb_Luigi = new PictureBox();
-            Controls.Add(pb_Luigi);
-
-            pb_Luigi.SizeMode = PictureBoxSizeMode.StretchImage;
-            pb_Luigi.Image = Image.FromFile("MarioAuswahl.png");
-            pb_Luigi.Size = new Size(180, 300);
-            pb_Luigi.Top = 100;
-            pb_Luigi.Left = 200;
-
-            pb_Luigi.Click += Pb_Luigi_Click;
-
-            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - -
-
-            pb_Toad = new PictureBox();
-            Controls.Add(pb_Toad);
-
-            pb_Toad.SizeMode = PictureBoxSizeMode.StretchImage;
-            pb_Toad.Image = Image.FromFile("MarioAuswahl.png");
-            pb_Toad.Size = new Size(180, 300);
-            pb_Toad.Top = 100;
-            pb_Toad.Left = 400;
-
-            pb_Toad.Click += Pb_Toad_Click;
-
-            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - -
-
-            pb_Waluigi = new PictureBox();
-            Controls.Add(pb_Waluigi);
-
-            pb_Waluigi.SizeMode = PictureBoxSizeMode.StretchImage;
-            pb_Waluigi.Image = Image.FromFile("MarioAuswahl.png");
-            pb_Waluigi.Size = new Size(180, 300);
-            pb_Waluigi.Top = 100;
-            pb_Waluigi.Left = 600;
-
-            pb_Waluigi.Click += Pb_Waluigi_Click;
-        } //Charakterbilder ändern dann fertig
+           
+        } 
 
 
 
@@ -868,7 +846,7 @@ namespace Mario_Unbound
 
         private void Btn_Start_Click(object? sender, EventArgs e)
         {
-            Characters();
+            SpielSeite();
 
 
 
@@ -1025,6 +1003,7 @@ namespace Mario_Unbound
                 gameTimer.Interval = 20; // ~50 FPS
                 gameTimer.Tick += GameTimer_Tick;
             }
+            
 
         }
         private void PlayerTouchedEndFlag()
@@ -1109,13 +1088,23 @@ namespace Mario_Unbound
                 }
                 if (dreieckGedrueckt)
                 {
-
+                    foreach (Panel npc in allNpcs)
+                    {
+                        if (player.Bounds.IntersectsWith(npc.Bounds))
+                        {
+                            talking = true;
+                            ShowDialog(npc);
+                            break;
+                        }
+                    }
+                   
                 }
             }
         }
 
         private void ResetLevel()
         {
+            
             Controls.Clear();
 
             ClientSize = new Size(1600, 500);
@@ -1130,6 +1119,7 @@ namespace Mario_Unbound
             enemyE1Health = 5;
             enemyE2Health = 3;
             enemyE3Health = 4;  
+            
         }
 
         public void AufbauLevel1()
@@ -1204,21 +1194,10 @@ namespace Mario_Unbound
         public void AufbauLevel3()
         {
             ResetLevel();
-
-           CreateFloor();
-
+            CreateFloor();
             CreatePlayer();
-
-           
-
             CreateEndFlag();
-
-            //Wasser erstellen 
-
             CreateWater(400, 450, 100);
-            
-
-            
 
             //die fleigenden Blöcke erstelln
             CreateFlyingBlock(800, 300, 300);
@@ -1537,8 +1516,8 @@ namespace Mario_Unbound
                         gameTimer?.Stop();
                         enemyFireTimer?.Stop();
 
-                        MessageBox.Show("Game Over! You were hit.");
-                        this.Close(); // Fenster schließen, sonst problem
+                        MessageBox.Show("Game Over! DU HAST UNS ENTÄUSCHT.");
+                        Close(); // Fenster schließen, sonst problem
                         // löschen aller gegnerischen Schüsse
                         foreach (var s in enemyShots.ToList())
                         {
@@ -1560,7 +1539,7 @@ namespace Mario_Unbound
                     {
                         coinsCollected++;
                         Controls.Remove(coin);
-                        this.Text = "Mario Unbound - F to talk -E to shoot, Collected coins: " + coinsCollected ;
+                        Text = "Mario Unbound - F to talk -E to shoot, Collected coins: " + coinsCollected ;
 
                         allCoins.RemoveAt(i);
 
@@ -1686,7 +1665,7 @@ namespace Mario_Unbound
             Panel playerFireball = new Panel();
             playerFireball.Size = new Size(16, 16);
             playerFireball.BackColor = Color.OrangeRed;
-
+            
             int spawnX = _wasLeftMovement ? player.Left - playerFireball.Width : player.Right;
             int spawnY = player.Top + player.Height / 2 - playerFireball.Height / 2;
             playerFireball.Location = new Point(spawnX, spawnY);
@@ -1742,10 +1721,11 @@ namespace Mario_Unbound
                 }
             }
 
-            // shoot with E key
+            
             if (e.KeyCode == Keys.E)
             {
                 SpawnPlayerFireball();
+                
             }
 
             
@@ -1757,7 +1737,7 @@ namespace Mario_Unbound
                         if (player.Bounds.IntersectsWith(npc.Bounds))
                         {
                             talking = true;
-                            ZeigeDialog(npc);
+                            ShowDialog(npc);
                             break;
                         }
                 }
@@ -1781,7 +1761,7 @@ namespace Mario_Unbound
             }
         }
 
-        public void ZeigeDialog(Panel getroffenerNpc)
+        public void ShowDialog(Panel getroffenerNpc)
         {
             gameTimer.Stop(); // Spiel kurz pausieren
 
