@@ -12,7 +12,7 @@ namespace Mario_Unbound
 {
     /*
     * Kim stunden: ca. 13,5 Stunden
-    * Fatih stunden: ca. 13,5 Stunde
+    * Fatih stunden: ca. 14,5 Stunde
     *
     *neue probleme: WICHTIG:
     *Level2 Enemy2 kann nich angeschossen werden
