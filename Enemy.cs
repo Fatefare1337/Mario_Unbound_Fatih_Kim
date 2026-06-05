@@ -8,12 +8,10 @@ namespace Mario_Unbound
 {
     internal class Enemy : Gameelement
     {
-        int _enemytype;
          
-        public void BuildingEnemies(int enemytype)
+        public void BuildingEnemies()
         {
-            _enemytype = enemytype;
-
+            
             _movingspeed = 5;
             _jumpheight = 0;
         }

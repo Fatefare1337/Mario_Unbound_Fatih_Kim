@@ -5,11 +5,14 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
+using Windows.Gaming.Input;
+using static Mario_Unbound.Controller;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 using Timer = System.Windows.Forms.Timer;
 
 namespace Mario_Unbound
 {
+
     /*
     * Kim stunden: ca. 13,5 Stunden
     * Fatih stunden: ca. 14,5 Stunde
@@ -20,37 +23,18 @@ namespace Mario_Unbound
     *sollen wir eine endflag machen oder einfach wenn er das ende berührt?
     *
     *probleme:
-    *- bei email kann man kein @ dazuschreiben
-    *Level abspeichern
-    *idee: man kann level nicht auswählen, aber es gibt eine zurücksetzten button wo man seinen
-    *fortschritt zurücksetzt
-    *alles muss auf englisch gemacht werden
-    *abspeichern current level on account
-    *feuerbälle gehen durch panels. gewollt?
-    *vergrößerung von level ist ab und zu außerhalb bildchirm: richten bitte
-    *Zeile 738: spieler soll durch die lücke fallen, damit spielfeld größer ist, ohne bewegung
-    *gif hat weißen rand, bitte noch entfernen
-    *coins sammeln einbaun
-    *man kann durch npc durchlaufen, das nicht gut
-    *gegner und npc brauchen noch ein aussehen statt nur blop
-    *wenn enemy2 getouched wird game over, außer wenn von oben getouched wird, dann wird enemy2 zerstört
-    *kleiner gegner soll sich bewegen
-    *gegner soll erst schießen wenn player in sichtfeld also auf gleicher ebene
-    *wenn fahne von spieler berührt soll level aufhören und levelanzahl auf 1 erhöht werden. Message box mit "yay" und dann zum nächsten level als option
-    *reden für npc fehlt noch
-    *hintergründe vielleicht noch einbauen?
-    *power updates bei npc kurz vor enemy
-    * Title mit coincounter und levelanzeige 
-    * fehler bei coins abfrage
-    * logik frage: wieso bei npcs - block1??? wieso funktioniert das nur so??
-    * mein running gif worked nid?
-    * Sicherstellen das man nicht ins ziel kann bevor boss tot is
-    * klasse enemy will n enemytype? is das unnütz?
-    * Liste für Enemy geht ned?
+    *
     * 
      */
     public partial class Form1 : Form
     {
+
+        private PS4Controller _ps4Controller;
+        private Timer _controllerTimer;
+
+        // Deadzone für den Stick (z.B. 15% Abweichung von der Mitte ignorieren)
+        private const double Deadzone = 0.15;
+        private const double StickMitte = 0.5;
 
 
         bool _signedIn = false;
@@ -74,7 +58,7 @@ namespace Mario_Unbound
 
 
         public int coinsCollected = 0;
-        public int _currentLevel = 3;
+        public int _currentLevel = 2;
         PictureBox pb = new PictureBox();
 
         // new: animation images
@@ -133,7 +117,16 @@ namespace Mario_Unbound
         public Form1()
         {
             InitializeComponent();
-            this.DoubleBuffered = true; // Verhindert Flackern
+            _ps4Controller = new PS4Controller();
+
+            _controllerTimer = new Timer();
+            _controllerTimer.Interval = 20;
+            _controllerTimer.Tick += _ControllerTimer_Tick; 
+            _controllerTimer.Start();
+
+
+
+            DoubleBuffered = true; // Verhindert Flackern
             ClientSize = new Size(800, 500);
             //hier titel wo sagt e für schießen, j für reden, komm bis zum ende /zur flagge
 
@@ -303,10 +296,75 @@ namespace Mario_Unbound
 
             #region Gegner
             Enemy enemy1 = new Enemy();
-            enemy1.BuildingEnemies(1);
+            enemy1.BuildingEnemies();
             enemy1.MovingNonHuman();
 
             #endregion
+        }
+
+        private void _ControllerTimer_Tick(object? sender, EventArgs e)
+        {
+            
+
+            var state = _ps4Controller.GetState();
+
+            if (state.HasValue)
+            {
+                bool[] buttons = state.Value.Buttons;
+                double[] axes = state.Value.Axes;
+
+                // ----------------------------------------------------
+                // 1. LAUFEN (Linker Stick - Horizontale Achse)
+                // ----------------------------------------------------
+                // Index 0 ist in der Regel die X-Achse des linken Sticks
+                double linkerStickX = axes.Length > 0 ? axes[0] : StickMitte;
+
+                // Berechnung, wie weit der Stick aus der Mitte bewegt wurde
+                double abweichung = linkerStickX - StickMitte;
+
+                if (abweichung > Deadzone)
+                {
+                    // Stick nach RECHTS gedrückt (Wert geht Richtung 1.0)
+                    _goRight = true;
+                }
+                else if (abweichung < -Deadzone)
+                {
+                    // Stick nach LINKS gedrückt (Wert geht Richtung 0.0)
+                    _goLeft = true;
+                }
+                else
+                {
+                    _goRight = false;
+                    _goLeft = false;
+                }
+
+
+                // ----------------------------------------------------
+                // 2. SPRINGEN (Kreuz / "X" Taste)
+                // ----------------------------------------------------
+                // Bei den meisten PS4-Controllern unter WinRT:
+                // Index 0 = Quadrat, Index 1 = Kreuz (X)
+                bool kreuzGedrueckt = buttons.Length > 1 ? buttons[1] : false;
+                bool kreisGedrueckt = buttons.Length > 2 ? buttons[2] : false;
+                bool dreieckGedrueckt = buttons.Length > 3 ? buttons[3] : false;
+
+                if (kreuzGedrueckt)
+                {
+                    if (IsOnGround())
+                    {
+                        _verticalMovement = -_jumpForce;
+                        _canJump = false;
+                    }
+                }
+                if (kreisGedrueckt)
+                {
+                    SpawnPlayerFireball();
+                }
+                if (dreieckGedrueckt)
+                {
+
+                }
+            }
         }
 
         #region OhneGame
@@ -1793,6 +1851,7 @@ namespace Mario_Unbound
         private void Pb_Luigi_Click(object? sender, EventArgs e)
         {
             Luigi.chosenCharacters(pb_Luigi, "Luigi");
+            
         }
 
         private void Pb_Toad_Click(object? sender, EventArgs e)
@@ -1803,6 +1862,9 @@ namespace Mario_Unbound
         private void Pb_Waluigi_Click(object? sender, EventArgs e)
         {
             Waluigi.chosenCharacters(pb_Waluigi, "Waluigi");
+            // Wenn Waluigi ausgewählt wird, wird es schwere
+            enemyE1Health = 20;
+
         }
         #endregion
 
