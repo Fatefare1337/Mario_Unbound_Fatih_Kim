@@ -1,19 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using System.ComponentModel;
 
 namespace Mario_Unbound
 {
     internal class Enemy : Gameelement
     {
-         
-        public void BuildingEnemies()
+
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public int Health { get; set; }
+
+        public Enemy()
         {
-            
-            _movingspeed = 5;
-            _jumpheight = 0;
+            MoveSpeed = 5;
+            JumpHeight = 0;
+            Health = 5;
         }
     }
+
 }

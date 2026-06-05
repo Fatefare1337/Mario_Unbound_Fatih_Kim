@@ -10,10 +10,10 @@ namespace Mario_Unbound
     {
         
 
-        public void MovingNonHuman() 
+        public virtual void MovingNonHuman() 
         {
-            Left += _movingspeed;
-            Top -= _jumpheight;
+            Left += MoveSpeed;
+            Top -= JumpHeight;
         }
 
         

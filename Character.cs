@@ -2,27 +2,19 @@
 {
     internal class Character : Gameelement
     {
+        public string CharacterName { get; private set; }
 
-        PictureBox chosenCharacter;
+        public PictureBox CharacterImage { get; private set; }
 
-        //public string _charactername { get; set; }
-
-        
-        public void chosenCharacters(PictureBox ausgewählterCharacter, string _charactername) 
+        public void ChooseCharacter(
+            PictureBox selectedCharacter,
+            string characterName)
         {
-            chosenCharacter = ausgewählterCharacter;
-            _charactername = _charactername;
+            CharacterImage = selectedCharacter;
+            CharacterName = characterName;
 
-            _movingspeed = 10;
-            _jumpheight = 20;
-
-        }
-
-        public void Spawn()
-        {
-            Panel panel = new Panel();
-
-            
+            MoveSpeed = 10;
+            JumpHeight = 20;
         }
     }
 }

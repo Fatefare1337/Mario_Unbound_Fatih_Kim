@@ -8,14 +8,14 @@ namespace Mario_Unbound
 {
     internal class Fireball : Gameelement
     {
-        //PictureBox fireball;
-        Panel fireball;
-        Color fire;
-            public void BuildingFireball(Color Fire)
-            {
-                _movingspeed = 15;
-                _jumpheight = 5;
-                Fire = fire;
+        public Color FireColor { get; private set; }
+
+        public Fireball(Color color)
+        {
+            MoveSpeed = 15;
+            JumpHeight = 5;
+            FireColor = color;
         }
     }
+    
 }

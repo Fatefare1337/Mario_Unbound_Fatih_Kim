@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.ComponentModel;
 
 namespace Mario_Unbound
 {
     public abstract class MovingElements : Panel
     {
-        public int _movingspeed;
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public int MoveSpeed { get; protected set; }
 
-        public int _jumpheight;
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public int JumpHeight { get; protected set; }
     }
 }
