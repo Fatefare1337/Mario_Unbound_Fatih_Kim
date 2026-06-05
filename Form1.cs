@@ -32,7 +32,7 @@ namespace Mario_Unbound
         private PS4Controller _ps4Controller;
         private Timer _controllerTimer;
 
-        // Deadzone für den Stick (z.B. 15% Abweichung von der Mitte ignorieren)
+        // Deadzone für den Stick 
         private const double Deadzone = 0.15;
         private const double StickMitte = 0.5;
 
@@ -342,8 +342,7 @@ namespace Mario_Unbound
                 // ----------------------------------------------------
                 // 2. SPRINGEN (Kreuz / "X" Taste)
                 // ----------------------------------------------------
-                // Bei den meisten PS4-Controllern unter WinRT:
-                // Index 0 = Quadrat, Index 1 = Kreuz (X)
+                
                 bool kreuzGedrueckt = buttons.Length > 1 ? buttons[1] : false;
                 bool kreisGedrueckt = buttons.Length > 2 ? buttons[2] : false;
                 bool dreieckGedrueckt = buttons.Length > 3 ? buttons[3] : false;
