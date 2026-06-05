@@ -14,6 +14,11 @@ namespace Mario_Unbound
     * Kim stunden: ca. 13,5 Stunden
     * Fatih stunden: ca. 13,5 Stunde
     *
+    *neue probleme: WICHTIG:
+    *Level2 Enemy2 kann nich angeschossen werden
+    *wenn coin berührt muss zähler noch hochzählen
+    *sollen wir eine endflag machen oder einfach wenn er das ende berührt?
+    *
     *probleme:
     *- bei email kann man kein @ dazuschreiben
     *Level abspeichern
@@ -42,10 +47,12 @@ namespace Mario_Unbound
     * Sicherstellen das man nicht ins ziel kann bevor boss tot is
     * klasse enemy will n enemytype? is das unnütz?
     * Liste für Enemy geht ned?
-    * bei AUFBAU LEVEL 3 fehlen noch di npcs
+    * 
      */
     public partial class Form1 : Form
     {
+
+
         bool _signedIn = false;
         ComboBox cmb_Profilpicture;
         PictureBox picture;
@@ -67,7 +74,7 @@ namespace Mario_Unbound
 
 
         public int coinsCollected = 0;
-        public int _currentLevel = 1;
+        public int _currentLevel = 3;
         PictureBox pb = new PictureBox();
 
         // new: animation images
@@ -104,6 +111,8 @@ namespace Mario_Unbound
 
         // enemy health and UI
         private int enemyE1Health = 5;
+        private int enemyE2Health = 3;
+        private int enemy3Health = 3;
         private Label enemyHealthLabel;
         // player shot cooldown
         private DateTime _lastPlayerShot = DateTime.MinValue;
@@ -126,7 +135,7 @@ namespace Mario_Unbound
             InitializeComponent();
             this.DoubleBuffered = true; // Verhindert Flackern
             ClientSize = new Size(800, 500);
-
+            //hier titel wo sagt e für schießen, j für reden, komm bis zum ende /zur flagge
 
             KeyDown += Form1_KeyDown;
             KeyUp += Form1_KeyUp;
@@ -860,11 +869,21 @@ namespace Mario_Unbound
 
         #region Mitgame
 
-
-
-
-
-
+        public  void LevelendeAbfrage()
+        {
+            //if (player.Location.X = Endflag.Location.X)
+            //{
+            //    if (enemyE1Health <= 0)
+            //    {
+            //        MessageBox.Show("Du hast das Level geschafft! Weiter zum nächsten Level!");
+            //        AufbauLevel2();
+            //    }
+            //    else
+            //    {
+            //        MessageBox.Show("Du musst den Boss besiegen, um das Level zu beenden!");
+            //    }
+            //}
+        }
 
 
         public void AufbauLevel1()
@@ -1002,22 +1021,298 @@ namespace Mario_Unbound
 
         public void AufbauLevel2()
         {
+            Controls.Clear();
+            ClientSize = new Size(1600, 500);
+
+
+
+            // Boden erstellen bzw. wiederverwenden
+
+            floor = new Panel();
+            floor.BackColor = Color.Green;
+            if (!Controls.Contains(floor))
+                Controls.Add(floor);
+            floor.Size = new Size(ClientSize.Width, 50);
+            floor.Location = new Point(0, ClientSize.Height - floor.Height);
+
+            //Wasser erstellen 
+
+            Panel water = new Panel();
+            water.BackColor = Color.LightBlue;
+            water.Size = new Size(100, 25);
+            water.Location = new Point(400, 450);
+            this.Controls.Add(water);
+            water.BringToFront();
+            waterPanels.Add(water);
+
+            Panel water2 = new Panel();
+            water2.BackColor = Color.LightBlue;
+            water2.Size = new Size(300, 25);
+            water2.Location = new Point(600, 450);
+            this.Controls.Add(water2);
+            water2.BringToFront();
+            waterPanels.Add(water2);
+
             
+
+            //die fleigenden Blöcke erstelln
+
+            
+
+            Panel block2 = new Panel();
+            block2.BackColor = Color.RosyBrown;
+            block2.Size = new Size(300, 30);
+            block2.Location = new Point(800, 300);
+            this.Controls.Add(block2);
+            flyingBlocks.Add(block2);
+
+            //NPC panel
+           
+            Panel npc1 = new Panel();
+            npc1.BackColor = Color.GreenYellow;
+            npc1.Size = new Size(40, 60);
+            npc1.Location = new Point(200, 400);
+            Controls.Add(npc1);
+
+            Panel npc2 = new Panel();
+            npc2.BackColor = Color.GreenYellow;
+            npc2.Size = new Size(40, 60);
+            npc2.Location = new Point(950, block2.Location.Y - npc2.Height);
+            Controls.Add(npc2);
+
+            //gegner
+
+
+            enemyE1.BackColor = Color.IndianRed;
+            enemyE1.Size = new Size(200, 200);
+            enemyE1.Location = new Point(1400, 300); //sollte noch dynamisch werden
+            Controls.Add(enemyE1);
+
+            enemyE2.BackColor = Color.IndianRed;
+            enemyE2.Size = new Size(100, 100);
+            enemyE2.Location = new Point(500, 350); //sollte noch dynamisch werden
+            Controls.Add(enemyE2);
+
+            //Coins
+
+            Panel coin1 = new Panel();
+            coin1.BackColor = Color.Gold;
+            coin1.Size = new Size(40, 40);
+            coin1.Location = new Point(300, 400);
+            Controls.Add(coin1);
+
+            //Hier noch wenn coin berührt zähler + 1
+
+
+            // enemy health label above enemy
+            enemyHealthLabel = new Label();
+            enemyHealthLabel.AutoSize = true;
+            enemyHealthLabel.ForeColor = Color.White;
+            enemyHealthLabel.BackColor = Color.Transparent;
+            enemyHealthLabel.Top = enemyE1.Top - 20;
+            enemyHealthLabel.Left = enemyE1.Left;
+            enemyHealthLabel.Font = new Font(enemyHealthLabel.Font.FontFamily, 10, FontStyle.Bold);
+            enemyHealthLabel.Text = $"Enemy HP: {enemyE1Health}";
+            Controls.Add(enemyHealthLabel);
+
+
+            enemyHealthLabel = new Label();
+            enemyHealthLabel.AutoSize = true;
+            enemyHealthLabel.ForeColor = Color.White;
+            enemyHealthLabel.BackColor = Color.Transparent;
+            enemyHealthLabel.Top = enemyE2.Top - 20;
+            enemyHealthLabel.Left = enemyE2.Left;
+            enemyHealthLabel.Font = new Font(enemyHealthLabel.Font.FontFamily, 10, FontStyle.Bold);
+            enemyHealthLabel.Text = $"Enemy HP: {enemyE2Health}";
+            Controls.Add(enemyHealthLabel);
+
+            // enemy shooting timer: every 2.5 seconds spawn a red projectile aimed at player
+            if (enemyFireTimer == null)
+            {
+                enemyFireTimer = new Timer();
+                enemyFireTimer.Interval = 1000; // 2.5 seconds
+                enemyFireTimer.Tick += EnemyFireTimer_Tick;
+            }
+            enemyFireTimer.Start();
+
+            // Spielerpanel erstellen
+
+            player = new Panel();
+
+            pb.SizeMode = PictureBoxSizeMode.Zoom;
+            player.Size = new Size(40, 60);
+            player.Location = new Point(50, floor.Top - player.Height);
+            if (!Controls.Contains(player))
+                Controls.Add(player);
+
+            // Game Timer 
+            if (gameTimer == null)
+            {
+                gameTimer = new Timer();
+                gameTimer.Interval = 20; // ~50 FPS
+                gameTimer.Tick += GameTimer_Tick;
+            }
+            gameTimer.Start();
 
         }
 
         public void AufbauLevel3()
         {
-            
-        }
-
-        public void AufbauLevelEnd()
-        {
             Controls.Clear();
-            ClientSize = new Size(1800, 800);
-            // Level 4 könnte hier aufgebaut werden, z.B. mit anderen Plattformen, Gegnern, etc.
+            ClientSize = new Size(1600, 500);
+
+
+
+            // Boden erstellen bzw. wiederverwenden
+
+            floor = new Panel();
+            floor.BackColor = Color.Green;
+            if (!Controls.Contains(floor))
+                Controls.Add(floor);
+            floor.Size = new Size(ClientSize.Width, 50);
+            floor.Location = new Point(0, ClientSize.Height - floor.Height);
+
+            //Wasser erstellen 
+
+            Panel water = new Panel();
+            water.BackColor = Color.LightBlue;
+            water.Size = new Size(100, 25);
+            water.Location = new Point(200, 450);
+            this.Controls.Add(water);
+            water.BringToFront();
+            waterPanels.Add(water);
+
+            
+
+            //die fleigenden Blöcke erstelln
+
+            Panel block1 = new Panel();
+            block1.BackColor = Color.RosyBrown;
+            block1.Size = new Size(150, 30);
+            block1.Location = new Point(180, 300);
+            this.Controls.Add(block1);
+            flyingBlocks.Add(block1);
+
+            
+
+            //NPC panel
+            Panel npc1 = new Panel();
+            npc1.BackColor = Color.GreenYellow;
+            npc1.Size = new Size(40, 60);
+            npc1.Location = new Point(200, 300 - block1.Height); //sollte noch dynamisch werden
+            Controls.Add(npc1);
+
+            Panel npc2 = new Panel();
+            npc2.BackColor = Color.GreenYellow;
+            npc2.Size = new Size(40, 60);
+            npc2.Location = new Point(400, 420); //sollte noch dynamisch werden
+            Controls.Add(npc2);
+
+            Panel npc3 = new Panel();
+            npc3.BackColor = Color.GreenYellow;
+            npc3.Size = new Size(40, 60);
+            npc3.Location = new Point(800, 420);
+            Controls.Add(npc3);
+
+            
+
+            //coins
+
+            Panel coin1 = new Panel();
+            coin1.BackColor = Color.Gold;
+            coin1.Size = new Size(40, 40);
+            coin1.Location = new Point(300, 400);
+            Controls.Add(coin1);
+
+            Panel coin2 = new Panel();
+            coin2.BackColor = Color.Gold;
+            coin2.Size = new Size(40, 40);
+            coin2.Location = new Point(700, 400);
+            Controls.Add(coin2);
+
+            //Hier noch wenn coin berührt zähler + 1
+
+            //Hier noch wenn coin berührt zähler + 1
+
+            //gegner
+
+
+            enemyE1.BackColor = Color.IndianRed;
+            enemyE1.Size = new Size(200, 200);
+            enemyE1.Location = new Point(1400, 300); //sollte noch dynamisch werden
+            Controls.Add(enemyE1);
+
+            enemyE2.BackColor = Color.IndianRed;
+            enemyE2.Size = new Size(100, 100);
+            enemyE2.Location = new Point(600, 350); //sollte noch dynamisch werden
+            Controls.Add(enemyE2);
+
+            enemyE3.BackColor = Color.IndianRed;
+            enemyE3.Size = new Size(100, 100);
+            enemyE3.Location = new Point(900, 350); //sollte noch dynamisch werden
+            Controls.Add(enemyE3);
+
+            // enemy health label above enemy
+            enemyHealthLabel = new Label();
+            enemyHealthLabel.AutoSize = true;
+            enemyHealthLabel.ForeColor = Color.White;
+            enemyHealthLabel.BackColor = Color.Transparent;
+            enemyHealthLabel.Top = enemyE1.Top - 20;
+            enemyHealthLabel.Left = enemyE1.Left;
+            enemyHealthLabel.Font = new Font(enemyHealthLabel.Font.FontFamily, 10, FontStyle.Bold);
+            enemyHealthLabel.Text = $"Enemy HP: {enemyE1Health}";
+            Controls.Add(enemyHealthLabel);
+
+            enemyHealthLabel = new Label();
+            enemyHealthLabel.AutoSize = true;
+            enemyHealthLabel.ForeColor = Color.White;
+            enemyHealthLabel.BackColor = Color.Transparent;
+            enemyHealthLabel.Top = enemyE2.Top - 20;
+            enemyHealthLabel.Left = enemyE2.Left;
+            enemyHealthLabel.Font = new Font(enemyHealthLabel.Font.FontFamily, 10, FontStyle.Bold);
+            enemyHealthLabel.Text = $"Enemy HP: {enemyE2Health}";
+            Controls.Add(enemyHealthLabel);
+
+            enemyHealthLabel = new Label();
+            enemyHealthLabel.AutoSize = true;
+            enemyHealthLabel.ForeColor = Color.White;
+            enemyHealthLabel.BackColor = Color.Transparent;
+            enemyHealthLabel.Top = enemyE3.Top - 20;
+            enemyHealthLabel.Left = enemyE3.Left;
+            enemyHealthLabel.Font = new Font(enemyHealthLabel.Font.FontFamily, 10, FontStyle.Bold);
+            enemyHealthLabel.Text = $"Enemy HP: {enemyE3Health}";
+            Controls.Add(enemyHealthLabel);
+
+            // enemy shooting timer: every 2.5 seconds spawn a red projectile aimed at player
+            if (enemyFireTimer == null)
+            {
+                enemyFireTimer = new Timer();
+                enemyFireTimer.Interval = 1000; // 2.5 seconds
+                enemyFireTimer.Tick += EnemyFireTimer_Tick;
+            }
+            enemyFireTimer.Start();
+
+            // Spielerpanel erstellen
+
+            player = new Panel();
+
+            pb.SizeMode = PictureBoxSizeMode.Zoom;
+            player.Size = new Size(40, 60);
+            player.Location = new Point(50, floor.Top - player.Height);
+            if (!Controls.Contains(player))
+                Controls.Add(player);
+
+            // Game Timer 
+            if (gameTimer == null)
+            {
+                gameTimer = new Timer();
+                gameTimer.Interval = 20; // ~50 FPS
+                gameTimer.Tick += GameTimer_Tick;
+            }
+            gameTimer.Start();
         }
 
+       
         private void GameTimer_Tick(object? sender, EventArgs e)
         {
             if (player == null)
@@ -1321,7 +1616,7 @@ namespace Mario_Unbound
                 }
             }
 
-            //im wasser versinken - NOCH GEPLANT
+            
 
 
         }
@@ -1472,9 +1767,7 @@ namespace Mario_Unbound
                 case 3:
                     AufbauLevel3();
                     break;
-                case 4:
-                    AufbauLevelEnd();
-                    break;
+               
 
             }
 
