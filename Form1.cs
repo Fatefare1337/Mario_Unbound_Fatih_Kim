@@ -112,7 +112,7 @@ namespace Mario_Unbound
         // enemy health and UI
         private int enemyE1Health = 5;
         private int enemyE2Health = 3;
-        private int enemy3Health = 3;
+        private int enemyE3Health = 3;
         private Label enemyHealthLabel;
         // player shot cooldown
         private DateTime _lastPlayerShot = DateTime.MinValue;
