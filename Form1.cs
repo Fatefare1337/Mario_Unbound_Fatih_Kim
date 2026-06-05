@@ -58,7 +58,7 @@ namespace Mario_Unbound
 
 
         public int coinsCollected = 0;
-        public int _currentLevel = 2;
+        public int _currentLevel = 1;
         PictureBox pb = new PictureBox();
 
         // new: animation images
@@ -193,18 +193,18 @@ namespace Mario_Unbound
                         if (enemyHealthLabel != null)
                             enemyHealthLabel.Text = $"Enemy HP: {enemyE1Health}";
 
-                        if (enemyE1Health <= 0)
-                        {
-                            // Der gegner ist besiegt worden
-                            gameTimer?.Stop();
-                            enemyFireTimer?.Stop();
-                            Controls.Remove(enemyE1);
-                            if (enemyHealthLabel != null)
-                                Controls.Remove(enemyHealthLabel);
-                            enemyE1 = null;
-                            MessageBox.Show("Du hast gewonnen! Du hast den 'Boss' besigt! Wir hoffen, das Dir das spiel gefallen hat!", "SIEG!!!!!!", MessageBoxButtons.OK);
-                            Homepage();
-                        }
+                        //if (enemyE1Health <= 0)
+                        //{
+                        //    // Der gegner ist besiegt worden
+                        //    gameTimer?.Stop();
+                        //    enemyFireTimer?.Stop();
+                        Controls.Remove(enemyE1);
+                        //    if (enemyHealthLabel != null)
+                        //        Controls.Remove(enemyHealthLabel);
+                        //    enemyE1 = null;
+                        //    MessageBox.Show("Du hast gewonnen! Du hast den 'Boss' besigt! Wir hoffen, das Dir das spiel gefallen hat!", "SIEG!!!!!!", MessageBoxButtons.OK);
+                        //    Homepage();
+                        //}
 
                     }
                 }
@@ -249,15 +249,15 @@ namespace Mario_Unbound
 
                         if (enemyE1Health <= 0)
                         {
-                            // Der gegner ist besiegt worden
-                            gameTimer?.Stop();
-                            enemyFireTimer?.Stop();
-                            Controls.Remove(enemyE1);
-                            if (enemyHealthLabel != null)
-                                Controls.Remove(enemyHealthLabel);
-                            enemyE1 = null;
-                            MessageBox.Show("Du hast gewonnen! Du hast den 'Boss' besigt! Wir hoffen, das Dir das spiel gefallen hat!", "SIEG!!!!!!", MessageBoxButtons.OK);
-                            Homepage();
+                            //// Der gegner ist besiegt worden
+                            //gameTimer?.Stop();
+                            //enemyFireTimer?.Stop();
+                            //Controls.Remove(enemyE1);
+                            //if (enemyHealthLabel != null)
+                            //    Controls.Remove(enemyHealthLabel);
+                            //enemyE1 = null;
+                            //MessageBox.Show("Du hast gewonnen! Du hast den 'Boss' besigt! Wir hoffen, das Dir das spiel gefallen hat!", "SIEG!!!!!!", MessageBoxButtons.OK);
+                            //Homepage();
                         }
                     }
                 }
@@ -926,21 +926,7 @@ namespace Mario_Unbound
 
         #region Mitgame
 
-        public  void LevelendeAbfrage()
-        {
-            //if (player.Location.X = Endflag.Location.X)
-            //{
-            //    if (enemyE1Health <= 0)
-            //    {
-            //        MessageBox.Show("Du hast das Level geschafft! Weiter zum nächsten Level!");
-            //        AufbauLevel2();
-            //    }
-            //    else
-            //    {
-            //        MessageBox.Show("Du musst den Boss besiegen, um das Level zu beenden!");
-            //    }
-            //}
-        }
+       
 
 
         public void AufbauLevel1()
@@ -948,7 +934,7 @@ namespace Mario_Unbound
             Controls.Clear();
             ClientSize = new Size(1600, 500);
 
-
+          
 
             // Boden erstellen bzw. wiederverwenden
 
@@ -958,6 +944,16 @@ namespace Mario_Unbound
                 Controls.Add(floor);
             floor.Size = new Size(ClientSize.Width, 50);
             floor.Location = new Point(0, ClientSize.Height - floor.Height);
+
+            //Endflagge
+            Endflag = new PictureBox();
+            Endflag.Image = Image.FromFile("Fahne.jpg");
+            Endflag.SizeMode = PictureBoxSizeMode.Zoom;
+            Endflag.Location = new Point(ClientSize.Width - Endflag.Width, floor.Top - Endflag.Height *2);
+            Endflag.Size = new Size(50, 100);
+            Controls.Add(Endflag);
+
+            
 
             //Wasser erstellen 
 
@@ -1073,7 +1069,30 @@ namespace Mario_Unbound
                 gameTimer.Interval = 20; // ~50 FPS
                 gameTimer.Tick += GameTimer_Tick;
             }
+
+            if (player.Location.X == Endflag.Location.X)
+            {
+                if (enemyE1Health <= 0)
+                {
+                    MessageBox.Show("Du hast das Level geschafft! Weiter zum nächsten Level!");
+                    _currentLevel += 1;
+
+                    if (_currentLevel == 2)
+                        AufbauLevel2();
+                    else if (_currentLevel == 3)
+                        AufbauLevel3();
+                    else if (_currentLevel > 3)
+                        MessageBox.Show("Du hast alle Level geschafft! Herzlichen Glückwunsch!");
+                }
+                else
+                {
+                    MessageBox.Show("Du musst den Boss besiegen, um das Level zu beenden!");
+                }
+            } 
+
             gameTimer.Start();
+
+            
         }
 
         public void AufbauLevel2()
@@ -1081,7 +1100,19 @@ namespace Mario_Unbound
             Controls.Clear();
             ClientSize = new Size(1600, 500);
 
+            //Gemini: damit player am anfang spawned und der alte code nciht stört
+            flyingBlocks.Clear();
+            waterPanels.Clear();
+            enemyShots.Clear();
+            playerShots.Clear();
+            enemyShotVelocities.Clear();
+            playerShotVelocities.Clear();
 
+            
+            enemyE1 = new Enemy();
+            enemyE2 = new Enemy();
+            enemyE1Health = 5;
+            enemyE2Health = 3;
 
             // Boden erstellen bzw. wiederverwenden
 
@@ -1091,6 +1122,23 @@ namespace Mario_Unbound
                 Controls.Add(floor);
             floor.Size = new Size(ClientSize.Width, 50);
             floor.Location = new Point(0, ClientSize.Height - floor.Height);
+
+
+            // Spielerpanel erstellen
+
+            player = new Panel();
+            player.Size = new Size(40, 60);
+            player.Location = new Point(50, floor.Top - player.Height); 
+            Controls.Add(player);
+
+            //Endflagge
+            Endflag = new PictureBox();
+            Endflag.Image = Image.FromFile("Fahne.jpg");
+            Endflag.SizeMode = PictureBoxSizeMode.Zoom;
+            Endflag.Location = new Point(ClientSize.Width - Endflag.Width, floor.Top - Endflag.Height * 2);
+            Endflag.Size = new Size(50, 100);
+            Controls.Add(Endflag);
+
 
             //Wasser erstellen 
 
@@ -1192,15 +1240,7 @@ namespace Mario_Unbound
             }
             enemyFireTimer.Start();
 
-            // Spielerpanel erstellen
-
-            player = new Panel();
-
-            pb.SizeMode = PictureBoxSizeMode.Zoom;
-            player.Size = new Size(40, 60);
-            player.Location = new Point(50, floor.Top - player.Height);
-            if (!Controls.Contains(player))
-                Controls.Add(player);
+           
 
             // Game Timer 
             if (gameTimer == null)
@@ -1208,6 +1248,26 @@ namespace Mario_Unbound
                 gameTimer = new Timer();
                 gameTimer.Interval = 20; // ~50 FPS
                 gameTimer.Tick += GameTimer_Tick;
+            }
+
+            if (player.Location.X == Endflag.Location.X)
+            {
+                if (enemyE1Health <= 0)
+                {
+                    MessageBox.Show("Du hast das Level geschafft! Weiter zum nächsten Level!");
+                    _currentLevel += 1;
+
+                    if(_currentLevel == 2)
+                        AufbauLevel2();
+                    else if(_currentLevel == 3)
+                        AufbauLevel3();
+                    else if (_currentLevel > 3)
+                        MessageBox.Show("Du hast alle Level geschafft! Herzlichen Glückwunsch!");
+                }
+                else
+                {
+                    MessageBox.Show("Du musst den Boss besiegen, um das Level zu beenden!");
+                }
             }
             gameTimer.Start();
 
@@ -1218,7 +1278,18 @@ namespace Mario_Unbound
             Controls.Clear();
             ClientSize = new Size(1600, 500);
 
+            //Gemini: damit player am anfang spawned und der alte code nciht stört
+            flyingBlocks.Clear();
+            waterPanels.Clear();
+            enemyShots.Clear();
+            playerShots.Clear();
+            enemyShotVelocities.Clear();
+            playerShotVelocities.Clear();
 
+            enemyE1 = new Enemy();
+            enemyE2 = new Enemy();
+            enemyE1Health = 5;
+            enemyE2Health = 3;
 
             // Boden erstellen bzw. wiederverwenden
 
@@ -1228,6 +1299,25 @@ namespace Mario_Unbound
                 Controls.Add(floor);
             floor.Size = new Size(ClientSize.Width, 50);
             floor.Location = new Point(0, ClientSize.Height - floor.Height);
+
+            // Spielerpanel erstellen
+
+            player = new Panel();
+
+            pb.SizeMode = PictureBoxSizeMode.Zoom;
+            player.Size = new Size(40, 60);
+            player.Location = new Point(50, floor.Top - player.Height);
+            if (!Controls.Contains(player))
+                Controls.Add(player);
+
+            //Endflagge
+            Endflag = new PictureBox();
+            Endflag.Image = Image.FromFile("Fahne.jpg");
+            Endflag.SizeMode = PictureBoxSizeMode.Zoom;
+            Endflag.Location = new Point(ClientSize.Width - Endflag.Width, floor.Top - Endflag.Height * 2);
+            Endflag.Size = new Size(50, 100);
+            Controls.Add(Endflag);
+
 
             //Wasser erstellen 
 
@@ -1349,15 +1439,7 @@ namespace Mario_Unbound
             }
             enemyFireTimer.Start();
 
-            // Spielerpanel erstellen
-
-            player = new Panel();
-
-            pb.SizeMode = PictureBoxSizeMode.Zoom;
-            player.Size = new Size(40, 60);
-            player.Location = new Point(50, floor.Top - player.Height);
-            if (!Controls.Contains(player))
-                Controls.Add(player);
+            
 
             // Game Timer 
             if (gameTimer == null)
@@ -1365,6 +1447,25 @@ namespace Mario_Unbound
                 gameTimer = new Timer();
                 gameTimer.Interval = 20; // ~50 FPS
                 gameTimer.Tick += GameTimer_Tick;
+            }
+            if (player.Location.X == Endflag.Location.X)
+            {
+                if (enemyE1Health <= 0)
+                {
+                    MessageBox.Show("Du hast das Level geschafft! Weiter zum nächsten Level!");
+                    _currentLevel += 1;
+
+                    if (_currentLevel == 2)
+                        AufbauLevel2();
+                    else if (_currentLevel == 3)
+                        AufbauLevel3();
+                    else if (_currentLevel > 3)
+                        MessageBox.Show("Du hast alle Level geschafft! Herzlichen Glückwunsch!");
+                }
+                else
+                {
+                    MessageBox.Show("Du musst den Boss besiegen, um das Level zu beenden!");
+                }
             }
             gameTimer.Start();
         }
@@ -1375,8 +1476,47 @@ namespace Mario_Unbound
             if (player == null)
                 return;
 
-            // Horizontalbewegung
-            bool wasMovingHorizontally = _goLeft || _goRight; // wenn einer der beiden true ist, dann bewegt sich der Spieler horizontal
+            //  Spieler erreicht Endflagge: 
+            if (Endflag != null && player.Bounds.IntersectsWith(Endflag.Bounds))
+            {
+                gameTimer?.Stop();
+                enemyFireTimer?.Stop();
+
+                // win condition: enemy defeated or removed
+                if (enemyE1 == null || enemyE1Health <= 0)
+                {
+                    _currentLevel += 1;
+
+                    MessageBox.Show("Du hast das Level geschafft! Weiter zum nächsten Level!");
+
+                    // reset movement state so player spawns clean in next level
+                    _goLeft = false;
+                    _goRight = false;
+                    _verticalMovement = 0;
+                    _blockedDirection = 0;
+
+                    if (_currentLevel == 1) AufbauLevel1();
+                    else if (_currentLevel == 2) AufbauLevel2();
+                    else if (_currentLevel == 3) AufbauLevel3();
+                    else
+                    {
+                        MessageBox.Show("Du hast alle Level geschafft! Herzlichen Glückwunsch!");
+                        Homepage();
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Du musst den Boss besiegen, um das Level zu beenden!");
+                    // ggf. weiterlaufen lassen oder respawn etc.
+                    gameTimer?.Start();
+                    enemyFireTimer?.Start();
+                }
+
+                return;
+            }
+
+                // Horizontalbewegung
+                bool wasMovingHorizontally = _goLeft || _goRight; // wenn einer der beiden true ist, dann bewegt sich der Spieler horizontal
 
             // setzt die horizontale Bewegung um, aber respektiert die blockierte Richtung:
             // wenn nach links blockiert (-1), ignoriere die linke Eingabe; wenn nach rechts blockiert (1), ignoriere die rechte Eingabe. So wird verhindert, dass der Spieler in die Richtung weiterläuft, in die er gerade kollidiert ist.
@@ -1661,15 +1801,20 @@ namespace Mario_Unbound
 
                     if (enemyE1Health <= 0)
                     {
-                        gameTimer?.Stop();
+                        
                         enemyFireTimer?.Stop();
                         Controls.Remove(enemyE1);
                         if (enemyHealthLabel != null) Controls.Remove(enemyHealthLabel);
-                        enemyE1 = null;
-                        MessageBox.Show("Enemy defeated!");
-                        Homepage();
-                        return;
+                        
                     }
+
+                    
+
+
+                   
+                    
+
+                   
                 }
             }
 
@@ -1797,6 +1942,13 @@ namespace Mario_Unbound
             {
                 SpawnPlayerFireball();
             }
+
+            //if (e.KeyCode == Keys.F)
+            //{
+            //    gameTimer?.Stop();
+            //    enemyFireTimer?.Stop();
+            //    Reden();
+            //}
         }
 
         private void Form1_KeyUp(object? sender, KeyEventArgs e)
