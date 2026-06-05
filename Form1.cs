@@ -14,7 +14,7 @@ namespace Mario_Unbound
 {
 
     /*
-    * Kim stunden: ca. 13,5 Stunden
+    * Kim stunden: ca. 16 Stunden
     * Fatih stunden: ca. 14,5 Stunde
     *
     *neue probleme: WICHTIG:
