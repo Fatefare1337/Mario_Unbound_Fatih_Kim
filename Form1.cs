@@ -37,7 +37,7 @@ namespace Mario_Unbound
 
         // Deadzone für den Stick 
         private const double Deadzone = 0.15;
-        private const double StickMitte = 0.5;
+        private const double Stickmiddel = 0.5;
 
 
         
@@ -63,7 +63,7 @@ namespace Mario_Unbound
 
 
 
-        public int coinsCollected = 0;
+        public int _coinsCollected = 0;
         public int _currentLevel = 1;
         PictureBox pb = new PictureBox();
 
@@ -88,10 +88,6 @@ namespace Mario_Unbound
         private Timer gameTimer;
         private Timer enemyFireTimer;
         Enemy enemyE1 = new Enemy();
-        Enemy enemyE2 = new Enemy();
-        Enemy enemyE3 = new Enemy();
-        Enemy enemyE4 = new Enemy();
-        Enemy enemyE5 = new Enemy();
 
         private Dictionary<Panel, PointF> enemyShotVelocities = new Dictionary<Panel, PointF>();
         // player projectiles
@@ -100,8 +96,7 @@ namespace Mario_Unbound
 
         // enemy health and UI
         private int enemyE1Health = 5;
-        private int enemyE2Health = 3;
-        private int enemyE3Health = 3;
+        
         private Label enemyHealthLabel;
         // player shot cooldown
         private DateTime _lastPlayerShot = DateTime.MinValue;
@@ -116,7 +111,7 @@ namespace Mario_Unbound
         // -1 = blocked moving left, 1 = blocked moving right, 0 = not blocked
         private int _blockedDirection = 0;
         // width of gap at end of main floor (pixels)
-        
+
 
 
         public Form1()
@@ -125,13 +120,13 @@ namespace Mario_Unbound
             KeyPreview = true; //gemini : damit Form1 auch KeyEvents empfängt, wenn ein anderes Steuerelement den Fokus hat (z.B. TextBox)
             _ps4Controller = new PS4Controller();
 
-            Text = "Mario Unbound - F to talk - E to shoot, Collected coins: " + coinsCollected;
+            Text = "Mario Unbound - F to talk - E to shoot, Collected coins: " + _coinsCollected;
 
             _controllerTimer = new Timer();
             _controllerTimer.Interval = 20;
-            _controllerTimer.Tick += _ControllerTimer_Tick; 
+            _controllerTimer.Tick += _ControllerTimer_Tick;
             _controllerTimer.Start();
-            
+
 
 
             DoubleBuffered = true; // Verhindert Flackern
@@ -162,6 +157,15 @@ namespace Mario_Unbound
             catch (Exception)
             {
                 runningGif = null;
+            }
+            try
+            {
+                runningGifLeft = Image.FromFile("Mario_running_full_life_Left.gif");
+            }
+            catch (Exception)
+            {
+
+                runningGifLeft = null;
             }
             // Move player shots and check collisions with enemy
             if (playerShots.Count > 0)
@@ -218,100 +222,80 @@ namespace Mario_Unbound
                 }
             }
             // Move player shots and check collisions with enemy
-            if (playerShots.Count > 0)
+            for (int i = playerShots.Count - 1; i >= 0; i--)
             {
-                foreach (var playerShot in playerShots.ToList())
+                var playerShot = playerShots[i];
+                if (!playerShotVelocities.TryGetValue(playerShot, out PointF pvel))
                 {
-                    if (!playerShotVelocities.TryGetValue(playerShot, out PointF pvel))
+                    playerShot.Parent?.Controls.Remove(playerShot);
+                    playerShotVelocities.Remove(playerShot);
+                    playerShots.RemoveAt(i);
+                    continue;
+                }
+
+                // Schuss bewegen
+                playerShot.Left += (int)pvel.X;
+                playerShot.Top += (int)pvel.Y;
+
+                // Schuss entfernen, wenn außerhalb des Bildschirms
+                if (playerShot.Right < 0 || playerShot.Left > ClientSize.Width ||
+                    playerShot.Bottom < 0 || playerShot.Top > ClientSize.Height)
+                {
+                    playerShot.Parent?.Controls.Remove(playerShot);
+                    playerShotVelocities.Remove(playerShot);
+                    playerShots.RemoveAt(i);
+                    continue;
+                }
+
+                if (playerShot.Parent == null) continue;
+                Rectangle shotScreenBounds = playerShot.Parent.RectangleToScreen(playerShot.Bounds);
+                bool shotHitSomething = false;
+
+                // Wir gehen alle NPCs durch, die im Spiel registriert sind
+                for (int j = allNpcs.Count - 1; j >= 0; j--)
+                {
+                    Panel enemy = allNpcs[j];
+                    if (enemy == null || enemy.Parent == null || !enemy.Visible) continue;
+
+                    // Absolute Position des Gegners ermitteln
+                    Rectangle enemyScreenBounds = enemy.Parent.RectangleToScreen(enemy.Bounds);
+
+                    // Kollisionsprüfung
+                    if (shotScreenBounds.IntersectsWith(enemyScreenBounds))
                     {
-                        Controls.Remove(playerShot);
-                        playerShots.Remove(playerShot);
+                        // 1. Schuss entfernen
+                        playerShot.Parent?.Controls.Remove(playerShot);
                         playerShotVelocities.Remove(playerShot);
-                        continue;
-                    }
+                        playerShots.RemoveAt(i);
+                        shotHitSomething = true;
 
-                    playerShot.Left += (int)pvel.X;
-                    playerShot.Top += (int)pvel.Y;
-
-                    // entfernen, wenn außerhalb des Bildschirms
-                    if (playerShot.Right < 0 || playerShot.Left > ClientSize.Width || playerShot.Bottom < 0 || playerShot.Top > ClientSize.Height)
-                    {
-                        Controls.Remove(playerShot);
-                        playerShots.Remove(playerShot);
-                        playerShotVelocities.Remove(playerShot);
-                        continue;
-                    }
-
-                    // wenn der Spieler den "Boss" trifft.
-                    if (enemyE1 != null && playerShot.Bounds.IntersectsWith(enemyE1.Bounds))
-                    {
-                        // Projektil entfernen
-                        Controls.Remove(playerShot);
-                        playerShots.Remove(playerShot);
-                        playerShotVelocities.Remove(playerShot);
-
-                        // Gegnerische Gesundheit reduzieren
-                        enemyE1Health -= 1;
-                        if (enemyHealthLabel != null)
-                            enemyHealthLabel.Text = $"Enemy HP: {enemyE1Health}";
-
-                        if (enemyE1Health <= 0)
+                        // 2. Welcher Gegner wurde getroffen? (Zuweisung über Instanz oder Name)
+                        if (enemy == enemyE1 || enemy.Name == "enemyE1")
                         {
-                            //// Der gegner ist besiegt worden
-                            //gameTimer?.Stop();
-                            //enemyFireTimer?.Stop();
-                            //Controls.Remove(enemyE1);
-                            //if (enemyHealthLabel != null)
-                            //    Controls.Remove(enemyHealthLabel);
-                            //enemyE1 = null;
-                            //MessageBox.Show("Du hast gewonnen! Du hast den 'Boss' besigt! Wir hoffen, das Dir das spiel gefallen hat!", "SIEG!!!!!!", MessageBoxButtons.OK);
-                            //Homepage();
+                            enemyE1Health -= 1;
+                            if (enemyHealthLabel != null) enemyHealthLabel.Text = $"Enemy HP: {enemyE1Health}";
+                            if (enemyE1Health <= 0)
+                            {
+                                enemyFireTimer?.Stop();
+                                enemy.Parent?.Controls.Remove(enemy);
+                                if (enemyHealthLabel != null) enemyHealthLabel.Parent?.Controls.Remove(enemyHealthLabel);
+                                allNpcs.RemoveAt(j);
+                                enemyE1 = null;
+                            }
                         }
+                       
+
+                        break; // Inneren Loop abbrechen, da dieser Schuss verbraucht ist
                     }
                 }
+
+                if (shotHitSomething) continue; // Zum nächsten Schuss springen
             }
-            
-            
-
-            try
-            {
-                runningGifLeft = Image.FromFile("Mario_running_full_life_left.gif");
-            }
-            catch (Exception)
-            {
-                // Wenn das Laden des linken GIFs fehlschlägt, versuchen wir,
-                // es aus dem rechten GIF zu erstellen, indem wir es horizontal spiegeln
-                try
-                {
-                    if (runningGif != null)
-                    {
-                        runningGifLeft = (Image)runningGif.Clone();
-                        runningGifLeft.RotateFlip(RotateFlipType.RotateNoneFlipX);
-                    }
-                    else
-                    {
-                        runningGifLeft = null;
-                    }
-                }
-                catch
-                {
-                    runningGifLeft = null;
-                }
-            }
-
-            #endregion
-
-
-            #region Gegner
-            Enemy enemy1 = new Enemy();
-            enemy1.MovingNonHuman();
-            
-            #endregion
         }
-        
-       
+        #endregion
 
-        #region OhneGame
+
+                #region OhneGame
 
         public void BackToPage()
         {
@@ -635,7 +619,7 @@ namespace Mario_Unbound
         private void Btn_Reset_Click(object? sender, EventArgs e)
         {
             _currentLevel = 1;
-            coinsCollected = 0;
+            _coinsCollected = 0;
             
         }
 
@@ -867,8 +851,22 @@ namespace Mario_Unbound
             enemy.BackColor = Color.IndianRed;
             enemy.Size = new Size(width, height);
             enemy.Location = new Point(x, y);
-
+            
             Controls.Add(enemy);
+            if (_currentLevel == 2)
+            {
+                enemyFireTimer.Interval = 800;
+                enemyE1Health = 20;
+            }
+                
+
+            else if (_currentLevel == 3)
+            {
+                enemyFireTimer.Interval = 600;
+                enemyE1Health = 50;
+            }
+              
+            
         }
         private Panel CreateNpc(int x, int y, string dialog)
         {
@@ -928,7 +926,7 @@ namespace Mario_Unbound
             Label label = new Label();
 
             label.AutoSize = true;
-            label.ForeColor = Color.White;
+            label.ForeColor = Color.Black;
             label.BackColor = Color.Transparent;
             label.Top = enemy.Top - 20;
             label.Left = enemy.Left;
@@ -938,7 +936,7 @@ namespace Mario_Unbound
                 10,
                 FontStyle.Bold);
 
-            label.Text = $"Enemy HP: {health}";
+            label.Text = $"Leben des Bosses: {health}";
 
             Controls.Add(label);
 
@@ -1029,6 +1027,7 @@ namespace Mario_Unbound
             }
         }
 
+        // Mit hilfe von Gemini gemacht
         private void _ControllerTimer_Tick(object? sender, EventArgs e)
         {
 
@@ -1043,18 +1042,19 @@ namespace Mario_Unbound
                 // ----------------------------------------------------
                 // 1. LAUFEN (Linker Stick - Horizontale Achse)
                 // ----------------------------------------------------
-                // Index 0 ist in der Regel die X-Achse des linken Sticks
-                double linkerStickX = axes.Length > 0 ? axes[0] : StickMitte;
+                // Index die X-Achse des linken Sticks
+                double leftStickX = axes.Length > 0 ? axes[0] : Stickmiddel;
 
                 // Berechnung, wie weit der Stick aus der Mitte bewegt wurde
-                double abweichung = linkerStickX - StickMitte;
+                double deviation = leftStickX - Stickmiddel;
+                // abweichung auf englisch
 
-                if (abweichung > Deadzone)
+                if (deviation > Deadzone)
                 {
                     // Stick nach RECHTS gedrückt (Wert geht Richtung 1.0)
                     _goRight = true;
                 }
-                else if (abweichung < -Deadzone)
+                else if (deviation < -Deadzone)
                 {
                     // Stick nach LINKS gedrückt (Wert geht Richtung 0.0)
                     _goLeft = true;
@@ -1070,11 +1070,11 @@ namespace Mario_Unbound
                 // 2. SPRINGEN (Kreuz / "X" Taste)
                 // ----------------------------------------------------
 
-                bool kreuzGedrueckt = buttons.Length > 1 ? buttons[1] : false;
-                bool kreisGedrueckt = buttons.Length > 2 ? buttons[2] : false;
-                bool dreieckGedrueckt = buttons.Length > 3 ? buttons[3] : false;
+                bool crossPressed = buttons.Length > 1 ? buttons[1] : false;
+                bool circlePressed = buttons.Length > 2 ? buttons[2] : false;
+                bool trianglePressed = buttons.Length > 3 ? buttons[3] : false;
 
-                if (kreuzGedrueckt)
+                if (crossPressed)
                 {
                     if (IsOnGround())
                     {
@@ -1082,11 +1082,11 @@ namespace Mario_Unbound
                         _canJump = false;
                     }
                 }
-                if (kreisGedrueckt)
+                if (circlePressed)
                 {
                     SpawnPlayerFireball();
                 }
-                if (dreieckGedrueckt)
+                if (circlePressed)
                 {
                     foreach (Panel npc in allNpcs)
                     {
@@ -1116,9 +1116,8 @@ namespace Mario_Unbound
             playerShots.Clear();
             enemyShotVelocities.Clear();
             playerShotVelocities.Clear();
-            enemyE1Health = 5;
-            enemyE2Health = 3;
-            enemyE3Health = 4;  
+            
+            
             
         }
 
@@ -1131,17 +1130,17 @@ namespace Mario_Unbound
             CreateWater(1000, 450, 100);
             CreateFlyingBlock(180, 300, 150);
             CreateFlyingBlock(800, 300, 300);
-            Panel block1 = CreateFlyingBlock(180, 300, 150);
+            Panel flyingBlock1 = CreateFlyingBlock(180, 300, 150);
             
 
             allNpcs.Add(
-            CreateNpc(200, 300 - block1.Height, "Zum Glück bist du da! Das Monster frisst uns alle!!!!!"));
+            CreateNpc(200, 300 - flyingBlock1.Height, "Zum Glück bist du da! Das Monster frisst uns alle!!!!!"));
             allNpcs.Add(
             CreateNpc(400, 420, "Jetzt beruhig dich doch bitte. Er wird uns schon helfen. Spieler, schieß das Monster mit E ab"));
             allNpcs.Add(
             CreateNpc(450, 420, "Ich hab so Angst. Bitte hilf uns"));
             allNpcs.Add(
-            CreateNpc(950, 420,"Ich wurde umzingelt!"));
+            CreateNpc(950, 420,"Entäusch uns nicht!"));
             CreateEnemy(enemyE1, 1400, 300, 200, 200);
             CreateEnemyHealthLabel(enemyE1, enemyE1Health);
             BossFireBall();
@@ -1160,6 +1159,7 @@ namespace Mario_Unbound
         {
             
             ResetLevel();
+            ResetLevel();
             CreateFloor();
             CreatePlayer();
             CreateEndFlag();
@@ -1172,18 +1172,13 @@ namespace Mario_Unbound
            CreateFlyingBlock(180, 300, 150);
             allNpcs.Add(CreateNpc(200,400,"Wow! Du hast uns schon viel geholfen. Diese Monster haben schon unsere Vorräte geklaut und meinen Sohn verletzt! Kümmer dich um sie!"));
            ;
-            Panel block2 = CreateFlyingBlock(180, 300, 150);
+            Panel flyingBlock2 = CreateFlyingBlock(180, 300, 150);
             allNpcs.Add(
-            CreateNpc(200, 300 - block2.Height, "Hast du keine Angst?"));  
+            CreateNpc(200, 300 - flyingBlock2.Height, "Die Monster sind für dich keine Bedrohung mehr! Du hast viel trainiert."));  
             //gegner
             CreateEnemy(enemyE1, 1400, 300, 200, 200);
             CreateEnemyHealthLabel(enemyE1, enemyE1Health);
-            CreateEnemy(enemyE2, 500, 350, 100, 100);
-            CreateEnemyHealthLabel(enemyE2, enemyE2Health);
-            
-           
             CreateCoin(300, 400);
-            
             BossFireBall();
             TimerGame();
             PlayerTouchedEndFlag();
@@ -1193,6 +1188,8 @@ namespace Mario_Unbound
 
         public void AufbauLevel3()
         {
+
+            
             ResetLevel();
             CreateFloor();
             CreatePlayer();
@@ -1202,32 +1199,17 @@ namespace Mario_Unbound
             //die fleigenden Blöcke erstelln
             CreateFlyingBlock(800, 300, 300);
 
-            Panel block3 = CreateFlyingBlock(180, 300, 150);
+            Panel flyingBlock3 = CreateFlyingBlock(180, 300, 150);
             allNpcs.Add(
-            CreateNpc(200, 300 - block3.Height,"Das ist die letzte Stufe! Du schaffst das. Danach sind wir frei!"));
+            CreateNpc(200, 300 - flyingBlock3.Height,"Das ist die letzte Stufe! Du schaffst das. Danach sind wir frei!"));
             allNpcs.Add(
             CreateNpc(200, 400,"Ich seh mein Ende schon..."));
             allNpcs.Add(
-            CreateNpc(500, 420,"Ich wusste wir können auf dich zählen"));
-
-            
-
-            //coins
-            
+            CreateNpc(500, 420,"Ich wusste wir, können auf dich zählen! Du bist unser Held!"));
             CreateCoin(300, 400);
-            
             CreateCoin(700, 400);
-            //Hier noch wenn coin berührt zähler + 1
-            //gegner
-
             CreateEnemy(enemyE1, 1400, 300, 200, 200);
             CreateEnemyHealthLabel(enemyE1, enemyE1Health);
-
-            CreateEnemy(enemyE2, 500, 350, 100, 100);
-            CreateEnemyHealthLabel(enemyE2, enemyE2Health);
-
-            CreateEnemy(enemyE3, 900, 350, 100, 100);
-            CreateEnemyHealthLabel(enemyE3, enemyE3Health)  ;
             BossFireBall();
             TimerGame();
             PlayerTouchedEndFlag();
@@ -1307,44 +1289,36 @@ namespace Mario_Unbound
             // animation bassierend auf die horizontale Bewegung setzen.
             if (player.Controls.Contains(pb))
             {
+
                 if (_goLeft)
                 {
-
-                    if (runningGifLeft != null && _currentAnimation != "run_left")
+                    // Wenn wir nach links laufen und noch nicht das linke GIF aktiv ist
+                    if (runningGifLeft != null && pb.Image != runningGifLeft)
                     {
                         pb.Image = runningGifLeft;
-                        _currentAnimation = "run_left";
                         _wasLeftMovement = true;
-                    }
-                    else if (runningGifLeft == null && _currentAnimation != "idle" && _wasLeftMovement)
-                    {
-                        pb.Image = idleImage;
-                        _currentAnimation = "idle";
                     }
                 }
                 else if (_goRight)
                 {
-
-                    if (runningGif != null && _currentAnimation != "run_right")
+                    // Wenn wir nach rechts laufen und noch nicht das rechte GIF aktiv ist
+                    if (runningGif != null && pb.Image != runningGif)
                     {
                         pb.Image = runningGif;
-                        _currentAnimation = "run_right";
                         _wasLeftMovement = false;
                     }
-                    else if (runningGif == null && _currentAnimation != "idle" && _wasLeftMovement != true)
-                    {
-                        pb.Image = idleImage;
-                        _currentAnimation = "idle";
-                    }
                 }
+                
                 else
                 {
-                    if (_currentAnimation != "idle")
+                    // Spieler steht still (Idle)
+                    if (pb.Image != idleImage)
                     {
                         pb.Image = idleImage;
-                        _currentAnimation = "idle";
                     }
                 }
+
+
             }
 
             // Vertikale Bewegung: wende vertikale Geschwindigkeit und Gravitation an
@@ -1537,9 +1511,9 @@ namespace Mario_Unbound
 
                     if (player != null && player.Bounds.IntersectsWith(coin.Bounds))
                     {
-                        coinsCollected++;
+                        _coinsCollected++;
                         Controls.Remove(coin);
-                        Text = "Mario Unbound - F to talk -E to shoot, Collected coins: " + coinsCollected ;
+                        Text = "Mario Unbound - F to talk -E to shoot, Collected coins: " + _coinsCollected ;
 
                         allCoins.RemoveAt(i);
 
@@ -1591,13 +1565,6 @@ namespace Mario_Unbound
                             if (enemyHealthLabel != null) Controls.Remove(enemyHealthLabel);
 
                         }
-
-
-
-
-
-
-
 
                     }
                 }
@@ -1767,7 +1734,7 @@ namespace Mario_Unbound
 
             // Sie holt sich den Text genau von diesem NPC
             string text = getroffenerNpc.Tag.ToString();
-            MessageBox.Show(text, "NPC sagt:");
+            MessageBox.Show(text, "Der Bewohner sagt:");
 
             gameTimer.Start(); // Spiel weiterlaufen lassen
         }
@@ -1835,8 +1802,7 @@ namespace Mario_Unbound
         {
             Waluigi.ChooseCharacter(pb_Waluigi, "Waluigi");
             // Wenn Waluigi ausgewählt wird, wird es schwere
-            enemyE1Health = 20;
-
+           
         }
         #endregion
 
