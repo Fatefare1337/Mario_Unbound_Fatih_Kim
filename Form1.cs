@@ -28,15 +28,17 @@ namespace Mario_Unbound
      */
     public partial class Form1 : Form
     {
-
+        List <Panel> allCoins = new List<Panel>();
+        List<Panel> allNpcs = new List<Panel>();
         private PS4Controller _ps4Controller;
         private Timer _controllerTimer;
 
         // Deadzone für den Stick 
         private const double Deadzone = 0.15;
         private const double StickMitte = 0.5;
+       
 
-
+        bool talking = false;
         bool _signedIn = false;
         ComboBox cmb_Profilpicture;
         PictureBox picture;
@@ -49,7 +51,7 @@ namespace Mario_Unbound
         //für Levelaufbau
 
         public List<Panel> flyingBlocks = new List<Panel>();
-        public List<Panel> CoinsOnField = new List<Panel>();
+        
         public List<Panel> waterPanels = new List<Panel>();
         public List<Panel> enemyShots = new List<Panel>();
         //public List<Enemy> e = new List<Enemy>();
@@ -117,7 +119,10 @@ namespace Mario_Unbound
         public Form1()
         {
             InitializeComponent();
+            this.KeyPreview = true; //gemini : damit Form1 auch KeyEvents empfängt, wenn ein anderes Steuerelement den Fokus hat (z.B. TextBox)
             _ps4Controller = new PS4Controller();
+
+            this.Text = "Mario Unbound - F to talk - E to shoot, Collected coins: " + coinsCollected;
 
             _controllerTimer = new Timer();
             _controllerTimer.Interval = 20;
@@ -299,232 +304,8 @@ namespace Mario_Unbound
             enemy1.MovingNonHuman();
             #endregion
         }
-        private void CreateEnemy(Enemy enemy, int x, int y, int width, int height)
-        {
-            enemy.BackColor = Color.IndianRed;
-            enemy.Size = new Size(width, height);
-            enemy.Location = new Point(x, y);
-
-            Controls.Add(enemy);
-        }
-        private Panel CreateNpc(int x, int y)
-        {
-            Panel npc = new Panel();
-
-            npc.BackColor = Color.GreenYellow;
-            npc.Size = new Size(40, 60);
-            npc.Location = new Point(x, y);
-
-            Controls.Add(npc);
-
-            return npc;
-        }
-        private void CreateWater(int x, int y, int width)
-        {
-            Panel water = new Panel();
-
-            water.BackColor = Color.LightBlue;
-            water.Size = new Size(width, 25);
-            water.Location = new Point(x, y);
-
-            Controls.Add(water);
-
-            water.BringToFront();
-            waterPanels.Add(water);
-        }
-        private Panel CreateFlyingBlock(int x, int y, int width)
-        {
-            Panel block = new Panel();
-
-            block.BackColor = Color.RosyBrown;
-            block.Size = new Size(width, 30);
-            block.Location = new Point(x, y);
-
-            Controls.Add(block);
-            flyingBlocks.Add(block);
-
-            return block;
-        }
-        private Panel CreateCoin(int x, int y)
-        {
-            Panel coin = new Panel();
-
-            coin.BackColor = Color.Gold;
-            coin.Size = new Size(40, 40);
-            coin.Location = new Point(x, y);
-
-            Controls.Add(coin);
-
-            return coin;
-        }
-        private Label CreateEnemyHealthLabel(Enemy enemy, int health)
-        {
-            Label label = new Label();
-            
-            label.AutoSize = true;
-            label.ForeColor = Color.White;
-            label.BackColor = Color.Transparent;
-            label.Top = enemy.Top - 20;
-            label.Left = enemy.Left;
-
-            label.Font = new Font(
-                label.Font.FontFamily,
-                10,
-                FontStyle.Bold);
-
-            label.Text = $"Enemy HP: {health}";
-
-            Controls.Add(label);
-            
-            return label;
-            
-        }
-        private void CreateEndFlag()
-        {
-            
-            Endflag = new PictureBox();
-            Endflag.Image = Image.FromFile("Fahne.jpg");
-            Endflag.SizeMode = PictureBoxSizeMode.Zoom;
-            Endflag.Location = new Point(ClientSize.Width - Endflag.Width, floor.Top - Endflag.Height * 2);
-            Endflag.Size = new Size(50, 100);
-            Controls.Add(Endflag);
-        }
-        private void CreatePlayer()
-        {
-            player = new Panel();
-
-            player.Size = new Size(40, 60);
-            player.Location = new Point(
-                50,
-                floor.Top - player.Height);
-
-            Controls.Add(player);
-
-            pb.Dock = DockStyle.Fill;
-            pb.SizeMode = PictureBoxSizeMode.Zoom;
-
-            if (pb.Image == null)
-                pb.Image = idleImage;
-
-            player.Controls.Add(pb);
-        }
-        private void CreateFloor()
-        {
-            floor = new Panel();
-
-            floor.BackColor = Color.Green;
-            floor.Size = new Size(ClientSize.Width, 50);
-            floor.Location = new Point(0, ClientSize.Height - floor.Height);
-
-            Controls.Add(floor);
-        }
-        private void BossFireBall()
-        {
-            // enemy shooting timer: every 2.5 seconds spawn a red projectile aimed at player
-            if (enemyFireTimer == null)
-            {
-                enemyFireTimer = new Timer();
-                enemyFireTimer.Interval = 1000; // 2.5 seconds
-                enemyFireTimer.Tick += EnemyFireTimer_Tick;
-            }
-            enemyFireTimer.Start();
-        }
-        private void TimerGame()
-        {
-            if (gameTimer == null)
-            {
-                gameTimer = new Timer();
-                gameTimer.Interval = 20; // ~50 FPS
-                gameTimer.Tick += GameTimer_Tick;
-            }
-
-        }
-        private void PlayerTouchedEndFlag()
-        {
-            if (player.Location.X == Endflag.Location.X)
-            {
-                if (enemyE1Health <= 0)
-                {
-                    MessageBox.Show("Du hast das Level geschafft! Weiter zum nächsten Level!");
-                    _currentLevel += 1;
-
-                    if (_currentLevel == 2)
-                        AufbauLevel2();
-                    else if (_currentLevel == 3)
-                        AufbauLevel3();
-                    else if (_currentLevel > 3)
-                        MessageBox.Show("Du hast alle Level geschafft! Herzlichen Glückwunsch!");
-                }
-                else
-                {
-                    MessageBox.Show("Du musst den Boss besiegen, um das Level zu beenden!");
-                }
-            }
-        }
-
-        private void _ControllerTimer_Tick(object? sender, EventArgs e)
-        {
-            
-
-            var state = _ps4Controller.GetState();
-
-            if (state.HasValue)
-            {
-                bool[] buttons = state.Value.Buttons;
-                double[] axes = state.Value.Axes;
-
-                // ----------------------------------------------------
-                // 1. LAUFEN (Linker Stick - Horizontale Achse)
-                // ----------------------------------------------------
-                // Index 0 ist in der Regel die X-Achse des linken Sticks
-                double linkerStickX = axes.Length > 0 ? axes[0] : StickMitte;
-
-                // Berechnung, wie weit der Stick aus der Mitte bewegt wurde
-                double abweichung = linkerStickX - StickMitte;
-
-                if (abweichung > Deadzone)
-                {
-                    // Stick nach RECHTS gedrückt (Wert geht Richtung 1.0)
-                    _goRight = true;
-                }
-                else if (abweichung < -Deadzone)
-                {
-                    // Stick nach LINKS gedrückt (Wert geht Richtung 0.0)
-                    _goLeft = true;
-                }
-                else
-                {
-                    _goRight = false;
-                    _goLeft = false;
-                }
-
-
-                // ----------------------------------------------------
-                // 2. SPRINGEN (Kreuz / "X" Taste)
-                // ----------------------------------------------------
-                
-                bool kreuzGedrueckt = buttons.Length > 1 ? buttons[1] : false;
-                bool kreisGedrueckt = buttons.Length > 2 ? buttons[2] : false;
-                bool dreieckGedrueckt = buttons.Length > 3 ? buttons[3] : false;
-
-                if (kreuzGedrueckt)
-                {
-                    if (IsOnGround())
-                    {
-                        _verticalMovement = -_jumpForce;
-                        _canJump = false;
-                    }
-                }
-                if (kreisGedrueckt)
-                {
-                    SpawnPlayerFireball();
-                }
-                if (dreieckGedrueckt)
-                {
-
-                }
-            }
-        }
+        
+       
 
         #region OhneGame
 
@@ -754,6 +535,16 @@ namespace Mario_Unbound
 
             Controls.Clear();
 
+            Button Btn_Reset = new Button();
+            Btn_Reset.BackColor = Color.White;
+            Btn_Reset.ForeColor = Color.Black;
+            Btn_Reset.Size = new Size(100, 30);
+            Btn_Reset.Text = "Reset Fortschritt";
+            Btn_Reset.Top = 400;
+            Btn_Reset.Left = ClientSize.Width - Btn_Reset.Width;
+            Controls.Add(Btn_Reset);
+            Btn_Reset.Click += Btn_Reset_Click;
+
             Logo = new PictureBox();
             Controls.Add(Logo);
             Logo.Image = Image.FromFile("Mario Logo.png");
@@ -835,6 +626,13 @@ namespace Mario_Unbound
                 lbl_Warning.ForeColor = Color.Red;
                 lbl_Warning.Font = new Font(lbl_Warning.Font, FontStyle.Bold);
             }
+        }
+
+        private void Btn_Reset_Click(object? sender, EventArgs e)
+        {
+            _currentLevel = 1;
+            coinsCollected = 0;
+            
         }
 
         protected void Teamseite()
@@ -1086,6 +884,235 @@ namespace Mario_Unbound
 
         #region Mitgame
 
+        private void CreateEnemy(Enemy enemy, int x, int y, int width, int height)
+        {
+            enemy.BackColor = Color.IndianRed;
+            enemy.Size = new Size(width, height);
+            enemy.Location = new Point(x, y);
+
+            Controls.Add(enemy);
+        }
+        private Panel CreateNpc(int x, int y, string dialog)
+        {
+            Panel npc = new Panel();
+
+            npc.BackColor = Color.GreenYellow;
+            npc.Size = new Size(40, 60);
+            npc.Tag = dialog; // Speichern des Dialogs im Tag-Property für späteren Zugriff
+            npc.Location = new Point(x, y);
+
+            Controls.Add(npc);
+
+            return npc;
+        }
+        private void CreateWater(int x, int y, int width)
+        {
+            Panel water = new Panel();
+
+            water.BackColor = Color.LightBlue;
+            water.Size = new Size(width, 25);
+            water.Location = new Point(x, y);
+
+            Controls.Add(water);
+
+            water.BringToFront();
+            waterPanels.Add(water);
+        }
+        private Panel CreateFlyingBlock(int x, int y, int width)
+        {
+            Panel block = new Panel();
+
+            block.BackColor = Color.RosyBrown;
+            block.Size = new Size(width, 30);
+            block.Location = new Point(x, y);
+
+            Controls.Add(block);
+            flyingBlocks.Add(block);
+
+            return block;
+        }
+        private Panel CreateCoin(int x, int y)
+        {
+            Panel coin = new Panel();
+
+            coin.BackColor = Color.Gold;
+            coin.Size = new Size(40, 40);
+            coin.Location = new Point(x, y);
+
+            allCoins.Add(coin);
+
+            Controls.Add(coin);
+
+            return coin;
+        }
+        private Label CreateEnemyHealthLabel(Enemy enemy, int health)
+        {
+            Label label = new Label();
+
+            label.AutoSize = true;
+            label.ForeColor = Color.White;
+            label.BackColor = Color.Transparent;
+            label.Top = enemy.Top - 20;
+            label.Left = enemy.Left;
+
+            label.Font = new Font(
+                label.Font.FontFamily,
+                10,
+                FontStyle.Bold);
+
+            label.Text = $"Enemy HP: {health}";
+
+            Controls.Add(label);
+
+            return label;
+
+        }
+        private void CreateEndFlag()
+        {
+
+            Endflag = new PictureBox();
+            Endflag.Image = Image.FromFile("Fahne.jpg");
+            Endflag.SizeMode = PictureBoxSizeMode.Zoom;
+            Endflag.Location = new Point(ClientSize.Width - Endflag.Width, floor.Top - Endflag.Height * 2);
+            Endflag.Size = new Size(50, 100);
+            Controls.Add(Endflag);
+        }
+        private void CreatePlayer()
+        {
+            player = new Panel();
+
+            player.Size = new Size(40, 60);
+            player.Location = new Point(
+                50,
+                floor.Top - player.Height);
+
+            Controls.Add(player);
+
+            pb.Dock = DockStyle.Fill;
+            pb.SizeMode = PictureBoxSizeMode.Zoom;
+
+            if (pb.Image == null)
+                pb.Image = idleImage;
+
+            player.Controls.Add(pb);
+        }
+        private void CreateFloor()
+        {
+            floor = new Panel();
+
+            floor.BackColor = Color.Green;
+            floor.Size = new Size(ClientSize.Width, 50);
+            floor.Location = new Point(0, ClientSize.Height - floor.Height);
+
+            Controls.Add(floor);
+        }
+        private void BossFireBall()
+        {
+            // enemy shooting timer: every 2.5 seconds spawn a red projectile aimed at player
+            if (enemyFireTimer == null)
+            {
+                enemyFireTimer = new Timer();
+                enemyFireTimer.Interval = 1000; // 2.5 seconds
+                enemyFireTimer.Tick += EnemyFireTimer_Tick;
+            }
+            enemyFireTimer.Start();
+        }
+        private void TimerGame()
+        {
+            if (gameTimer == null)
+            {
+                gameTimer = new Timer();
+                gameTimer.Interval = 20; // ~50 FPS
+                gameTimer.Tick += GameTimer_Tick;
+            }
+
+        }
+        private void PlayerTouchedEndFlag()
+        {
+            if (player.Location.X == Endflag.Location.X)
+            {
+                if (enemyE1Health <= 0)
+                {
+                    MessageBox.Show("Du hast das Level geschafft! Weiter zum nächsten Level!");
+                    _currentLevel += 1;
+
+                    if (_currentLevel == 2)
+                        AufbauLevel2();
+                    else if (_currentLevel == 3)
+                        AufbauLevel3();
+                    else if (_currentLevel > 3)
+                        MessageBox.Show("Du hast alle Level geschafft! Herzlichen Glückwunsch!");
+                }
+                else
+                {
+                    MessageBox.Show("Du musst den Boss besiegen, um das Level zu beenden!");
+                }
+            }
+        }
+
+        private void _ControllerTimer_Tick(object? sender, EventArgs e)
+        {
+
+
+            var state = _ps4Controller.GetState();
+
+            if (state.HasValue)
+            {
+                bool[] buttons = state.Value.Buttons;
+                double[] axes = state.Value.Axes;
+
+                // ----------------------------------------------------
+                // 1. LAUFEN (Linker Stick - Horizontale Achse)
+                // ----------------------------------------------------
+                // Index 0 ist in der Regel die X-Achse des linken Sticks
+                double linkerStickX = axes.Length > 0 ? axes[0] : StickMitte;
+
+                // Berechnung, wie weit der Stick aus der Mitte bewegt wurde
+                double abweichung = linkerStickX - StickMitte;
+
+                if (abweichung > Deadzone)
+                {
+                    // Stick nach RECHTS gedrückt (Wert geht Richtung 1.0)
+                    _goRight = true;
+                }
+                else if (abweichung < -Deadzone)
+                {
+                    // Stick nach LINKS gedrückt (Wert geht Richtung 0.0)
+                    _goLeft = true;
+                }
+                else
+                {
+                    _goRight = false;
+                    _goLeft = false;
+                }
+
+
+                // ----------------------------------------------------
+                // 2. SPRINGEN (Kreuz / "X" Taste)
+                // ----------------------------------------------------
+
+                bool kreuzGedrueckt = buttons.Length > 1 ? buttons[1] : false;
+                bool kreisGedrueckt = buttons.Length > 2 ? buttons[2] : false;
+                bool dreieckGedrueckt = buttons.Length > 3 ? buttons[3] : false;
+
+                if (kreuzGedrueckt)
+                {
+                    if (IsOnGround())
+                    {
+                        _verticalMovement = -_jumpForce;
+                        _canJump = false;
+                    }
+                }
+                if (kreisGedrueckt)
+                {
+                    SpawnPlayerFireball();
+                }
+                if (dreieckGedrueckt)
+                {
+
+                }
+            }
+        }
 
         private void ResetLevel()
         {
@@ -1115,10 +1142,16 @@ namespace Mario_Unbound
             CreateFlyingBlock(180, 300, 150);
             CreateFlyingBlock(800, 300, 300);
             Panel block1 = CreateFlyingBlock(180, 300, 150);
-            CreateNpc(200, 300 - block1.Height);
-            CreateNpc(400, 420);
-            CreateNpc(450, 420);
-            CreateNpc(950, 420);
+            
+
+            allNpcs.Add(
+            CreateNpc(200, 300 - block1.Height, "Zum Glück bist du da! Das Monster frisst uns alle!!!!!"));
+            allNpcs.Add(
+            CreateNpc(400, 420, "Jetzt beruhig dich doch bitte. Er wird uns schon helfen. Spieler, schieß das Monster mit E ab"));
+            allNpcs.Add(
+            CreateNpc(450, 420, "Ich hab so Angst. Bitte hilf uns"));
+            allNpcs.Add(
+            CreateNpc(950, 420,"Ich wurde umzingelt!"));
             CreateEnemy(enemyE1, 1400, 300, 200, 200);
             CreateEnemyHealthLabel(enemyE1, enemyE1Health);
             BossFireBall();
@@ -1127,7 +1160,8 @@ namespace Mario_Unbound
             PlayerTouchedEndFlag();
             gameTimer.Start();
 
-            
+           
+
         }
 
         
@@ -1146,21 +1180,20 @@ namespace Mario_Unbound
             CreateFlyingBlock(800, 300, 300); 
             //NPC panel
            CreateFlyingBlock(180, 300, 150);
-            Panel npc1 = new Panel();
-            npc1.BackColor = Color.GreenYellow;
-            npc1.Size = new Size(40, 60);
-            npc1.Location = new Point(200, 400);
-            Controls.Add(npc1);
+            allNpcs.Add(CreateNpc(200,400,"Wow! Du hast uns schon viel geholfen. Diese Monster haben schon unsere Vorräte geklaut und meinen Sohn verletzt! Kümmer dich um sie!"));
+           ;
             Panel block2 = CreateFlyingBlock(180, 300, 150);
-            CreateNpc(200, 300 - block2.Height);  
+            allNpcs.Add(
+            CreateNpc(200, 300 - block2.Height, "Hast du keine Angst?"));  
             //gegner
             CreateEnemy(enemyE1, 1400, 300, 200, 200);
             CreateEnemyHealthLabel(enemyE1, enemyE1Health);
             CreateEnemy(enemyE2, 500, 350, 100, 100);
             CreateEnemyHealthLabel(enemyE2, enemyE2Health);
-            //Coins
+            
+           
             CreateCoin(300, 400);
-            //Hier noch wenn coin berührt zähler + 1
+            
             BossFireBall();
             TimerGame();
             PlayerTouchedEndFlag();
@@ -1191,17 +1224,19 @@ namespace Mario_Unbound
             CreateFlyingBlock(800, 300, 300);
 
             Panel block3 = CreateFlyingBlock(180, 300, 150);
-
-            CreateNpc(200, 300 - block3.Height);
-
-            CreateNpc(200, 400);
-
-            CreateNpc(400, 420);
+            allNpcs.Add(
+            CreateNpc(200, 300 - block3.Height,"Das ist die letzte Stufe! Du schaffst das. Danach sind wir frei!"));
+            allNpcs.Add(
+            CreateNpc(200, 400,"Ich seh mein Ende schon..."));
+            allNpcs.Add(
+            CreateNpc(500, 420,"Ich wusste wir können auf dich zählen"));
 
             
 
             //coins
+            
             CreateCoin(300, 400);
+            
             CreateCoin(700, 400);
             //Hier noch wenn coin berührt zähler + 1
             //gegner
@@ -1223,7 +1258,7 @@ namespace Mario_Unbound
             gameTimer.Start();
         }
 
-       
+
 
         private void GameTimer_Tick(object? sender, EventArgs e)
         {
@@ -1269,8 +1304,8 @@ namespace Mario_Unbound
                 return;
             }
 
-                // Horizontalbewegung
-                bool wasMovingHorizontally = _goLeft || _goRight; // wenn einer der beiden true ist, dann bewegt sich der Spieler horizontal
+            // Horizontalbewegung
+            bool wasMovingHorizontally = _goLeft || _goRight; // wenn einer der beiden true ist, dann bewegt sich der Spieler horizontal
 
             // setzt die horizontale Bewegung um, aber respektiert die blockierte Richtung:
             // wenn nach links blockiert (-1), ignoriere die linke Eingabe; wenn nach rechts blockiert (1), ignoriere die rechte Eingabe. So wird verhindert, dass der Spieler in die Richtung weiterläuft, in die er gerade kollidiert ist.
@@ -1516,68 +1551,84 @@ namespace Mario_Unbound
                         return;
                     }
                 }
-            }
 
-            // Move player shots and check collisions with enemyE1
-            for (int i = playerShots.Count - 1; i >= 0; i--)
-            {
-                var playerShot = playerShots[i];
-                if (!playerShotVelocities.TryGetValue(playerShot, out PointF pvel))
+                for (int i = allCoins.Count - 1; i >= 0; i--)
                 {
-                    Controls.Remove(playerShot);
-                    playerShotVelocities.Remove(playerShot);
-                    playerShots.RemoveAt(i);
-                    continue;
-                }
+                    Panel coin = allCoins[i];
 
-                playerShot.Left += (int)pvel.X;
-                playerShot.Top += (int)pvel.Y;
-
-                // remove if out of bounds
-                if (playerShot.Right < 0 || playerShot.Left > ClientSize.Width || playerShot.Bottom < 0 || playerShot.Top > ClientSize.Height)
-                {
-                    Controls.Remove(playerShot);
-                    playerShotVelocities.Remove(playerShot);
-                    playerShots.RemoveAt(i);
-                    continue;
-                }
-
-                // collision with enemyE1
-                if (enemyE1 != null && playerShot.Bounds.IntersectsWith(enemyE1.Bounds))
-                {
-                    Controls.Remove(playerShot);
-                    playerShotVelocities.Remove(playerShot);
-                    playerShots.RemoveAt(i);
-
-                    enemyE1Health -= 1;
-                    if (enemyHealthLabel != null)
-                        enemyHealthLabel.Text = $"Enemy HP: {enemyE1Health}";
-
-                    if (enemyE1Health <= 0)
+                    if (player != null && player.Bounds.IntersectsWith(coin.Bounds))
                     {
-                        
-                        enemyFireTimer?.Stop();
-                        Controls.Remove(enemyE1);
-                        if (enemyHealthLabel != null) Controls.Remove(enemyHealthLabel);
-                        
+                        coinsCollected++;
+                        Controls.Remove(coin);
+                        this.Text = "Mario Unbound - F to talk -E to shoot, Collected coins: " + coinsCollected ;
+
+                        allCoins.RemoveAt(i);
+
+                       
+                       
+                    }
+                }
+
+                // Move player shots and check collisions with enemyE1
+                for (int i = playerShots.Count - 1; i >= 0; i--)
+                {
+                    var playerShot = playerShots[i];
+                    if (!playerShotVelocities.TryGetValue(playerShot, out PointF pvel))
+                    {
+                        Controls.Remove(playerShot);
+                        playerShotVelocities.Remove(playerShot);
+                        playerShots.RemoveAt(i);
+                        continue;
                     }
 
-                    
+                    playerShot.Left += (int)pvel.X;
+                    playerShot.Top += (int)pvel.Y;
+
+                    // remove if out of bounds
+                    if (playerShot.Right < 0 || playerShot.Left > ClientSize.Width || playerShot.Bottom < 0 || playerShot.Top > ClientSize.Height)
+                    {
+                        Controls.Remove(playerShot);
+                        playerShotVelocities.Remove(playerShot);
+                        playerShots.RemoveAt(i);
+                        continue;
+                    }
+
+                    // collision with enemyE1
+                    if (enemyE1 != null && playerShot.Bounds.IntersectsWith(enemyE1.Bounds))
+                    {
+                        Controls.Remove(playerShot);
+                        playerShotVelocities.Remove(playerShot);
+                        playerShots.RemoveAt(i);
+
+                        enemyE1Health -= 1;
+                        if (enemyHealthLabel != null)
+                            enemyHealthLabel.Text = $"Enemy HP: {enemyE1Health}";
+
+                        if (enemyE1Health <= 0)
+                        {
+
+                            enemyFireTimer?.Stop();
+                            Controls.Remove(enemyE1);
+                            if (enemyHealthLabel != null) Controls.Remove(enemyHealthLabel);
+
+                        }
 
 
-                   
-                    
 
-                   
+
+
+
+
+
+                    }
                 }
+
+
+
+
             }
 
-            
-
-
         }
-
-
 
 
         private void EnemyFireTimer_Tick(object? sender, EventArgs e)
@@ -1697,12 +1748,48 @@ namespace Mario_Unbound
                 SpawnPlayerFireball();
             }
 
-            //if (e.KeyCode == Keys.F)
-            //{
-            //    gameTimer?.Stop();
-            //    enemyFireTimer?.Stop();
-            //    Reden();
-            //}
+            
+            if (e.KeyCode == Keys.F)
+            {
+                    
+                foreach (Panel npc in allNpcs)
+                {
+                        if (player.Bounds.IntersectsWith(npc.Bounds))
+                        {
+                            talking = true;
+                            ZeigeDialog(npc);
+                            break;
+                        }
+                }
+                
+            }
+
+            if (e.KeyCode == Keys.Escape)
+            {
+                gameTimer?.Stop();
+                enemyFireTimer?.Stop();
+                var result = MessageBox.Show("Möchtest du wirklich zum Hauptmenü zurückkehren? ", "Bestätigung", MessageBoxButtons.YesNo);
+                if (result == DialogResult.Yes)
+                {
+                    Homepage();
+                }
+                else
+                {
+                    gameTimer?.Start();
+                    enemyFireTimer?.Start();
+                }
+            }
+        }
+
+        public void ZeigeDialog(Panel getroffenerNpc)
+        {
+            gameTimer.Stop(); // Spiel kurz pausieren
+
+            // Sie holt sich den Text genau von diesem NPC
+            string text = getroffenerNpc.Tag.ToString();
+            MessageBox.Show(text, "NPC sagt:");
+
+            gameTimer.Start(); // Spiel weiterlaufen lassen
         }
 
         private void Form1_KeyUp(object? sender, KeyEventArgs e)
