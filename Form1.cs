@@ -1055,7 +1055,7 @@ namespace Mario_Unbound
             // Spielerpanel erstellen
 
             player = new Panel();
-
+            
             pb.SizeMode = PictureBoxSizeMode.Zoom;
             player.Size = new Size(40, 60);
             player.Location = new Point(50, floor.Top - player.Height);
@@ -1097,6 +1097,7 @@ namespace Mario_Unbound
 
         public void AufbauLevel2()
         {
+            
             Controls.Clear();
             ClientSize = new Size(1600, 500);
 
@@ -1127,9 +1128,12 @@ namespace Mario_Unbound
             // Spielerpanel erstellen
 
             player = new Panel();
+            
             player.Size = new Size(40, 60);
             player.Location = new Point(50, floor.Top - player.Height); 
             Controls.Add(player);
+            pb.Dock = DockStyle.Fill;
+            player.Controls.Add(pb);
 
             //Endflagge
             Endflag = new PictureBox();
@@ -1276,6 +1280,7 @@ namespace Mario_Unbound
         public void AufbauLevel3()
         {
             Controls.Clear();
+            
             ClientSize = new Size(1600, 500);
 
             //Gemini: damit player am anfang spawned und der alte code nciht stört
@@ -1301,7 +1306,7 @@ namespace Mario_Unbound
             floor.Location = new Point(0, ClientSize.Height - floor.Height);
 
             // Spielerpanel erstellen
-
+            pb_Mario.Image = Image.FromFile("MarioAuswahl.png");
             player = new Panel();
 
             pb.SizeMode = PictureBoxSizeMode.Zoom;
@@ -1309,7 +1314,8 @@ namespace Mario_Unbound
             player.Location = new Point(50, floor.Top - player.Height);
             if (!Controls.Contains(player))
                 Controls.Add(player);
-
+            pb.Dock = DockStyle.Fill;
+            player.Controls.Add(pb);
             //Endflagge
             Endflag = new PictureBox();
             Endflag.Image = Image.FromFile("Fahne.jpg");
