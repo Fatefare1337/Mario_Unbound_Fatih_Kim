@@ -947,11 +947,13 @@ namespace Mario_Unbound
         {
 
             Endflag = new PictureBox();
-            Endflag.Image = Image.FromFile("Fahne.jpg");
+            Endflag.Image = Image.FromFile("Fahne.png");
             Endflag.SizeMode = PictureBoxSizeMode.Zoom;
             Endflag.Location = new Point(ClientSize.Width - Endflag.Width, floor.Top - Endflag.Height * 2);
             Endflag.Size = new Size(50, 100);
             Controls.Add(Endflag);
+            Endflag.BackColor = Color.IndianRed;
+            
         }
         private void CreatePlayer()
         {
